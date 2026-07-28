@@ -88,12 +88,17 @@
 
   <script>
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec';
-
+    
     async function fetchData() {
       const metricsContainer = document.getElementById('dashboardMetrics');
       
       try {
-        const response = await fetch(PROXY_URL);
+        // ADDED redirect: 'follow' TO HANDLE GOOGLE APPS SCRIPT REDIRECTS
+        const response = await fetch(PROXY_URL, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+
         const result = await response.json();
         
         if (!result.data) throw new Error(result.error || 'Failed to load tickets');
@@ -103,18 +108,15 @@
         const priorityCounts = { 'Critical': 0, 'Urgent': 0, 'High': 0 };
 
         tickets.forEach(ticket => {
-          // Count Departments
           const deptName = ticket.department ? ticket.department.name : 'General';
           deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
 
-          // Count Priorities
           const priority = ticket.priority || 'None';
           if (priorityCounts[priority] !== undefined) {
              priorityCounts[priority]++;
           }
         });
 
-        // 1. Render Total Tickets Block (Clickable)
         metricsContainer.innerHTML = `
           <a href="tickets.html?filter=all" target="_blank" class="metric-card">
             <h3>Total Tickets</h3>
@@ -122,7 +124,6 @@
           </a>
         `;
 
-        // 2. Render Priority Blocks (Clickable)
         Object.entries(priorityCounts).forEach(([priority, count]) => {
           metricsContainer.innerHTML += `
             <a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card">
@@ -132,7 +133,6 @@
           `;
         });
 
-        // 3. Render Department Blocks (Clickable)
         Object.entries(deptCounts).forEach(([dept, count]) => {
           metricsContainer.innerHTML += `
             <a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" target="_blank" class="metric-card">
