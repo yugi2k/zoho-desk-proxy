@@ -3,138 +3,218 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zoho Desk Dashboard</title>
+  <title>Zoho Desk Live Portal</title>
   <style>
     :root {
-      --bg: #0f172a;
+      --bg-color: #0f172a;
       --card-bg: #1e293b;
-      --text: #f8fafc;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
       --accent: #38bdf8;
       --border: #334155;
     }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
       margin: 0;
-      padding: 24px;
+      padding: 2rem;
     }
-
-    header {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    .header h1 { margin: 0; display: flex; align-items: center; gap: 10px; }
+    
+    .section-title {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      margin: 30px 0 15px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 8px;
     }
 
-    h1 { margin: 0; font-size: 1.5rem; }
-
-    button {
-      background-color: var(--accent);
-      color: #000;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    /* Metrics Row */
-    .metrics-grid {
+    .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
+      gap: 20px;
     }
-
+    
     .metric-card {
       background-color: var(--card-bg);
-      border: 1px solid var(--border);
       padding: 20px;
-      border-radius: 8px;
-      text-decoration: none; /* Removes link underline */
-      display: block;
-      transition: all 0.2s ease-in-out;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-
-    /* Hover effect to show it's clickable */
     .metric-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
       border-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-
-    .metric-card h3 { margin: 0 0 8px 0; font-size: 0.9rem; color: #94a3b8; }
-    .metric-card p { margin: 0; font-size: 2rem; font-weight: bold; color: var(--accent); }
-    
-    .priority-badge { color: #ef4444; } /* Red color for priority headers */
-
+    .metric-card h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+    .metric-card p {
+      margin: 10px 0 0 0;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+    .priority-badge {
+      display: inline-block;
+      background-color: #ef4444;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .total-card {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-color: var(--accent);
+    }
+    .total-card h3 { color: var(--text-main); font-size: 1.2rem; }
   </style>
 </head>
 <body>
 
-  <header>
+  <div class="header">
     <h1>🎫 Zoho Desk Live Portal</h1>
-    <button onclick="fetchData()">Refresh Data</button>
-  </header>
+  </div>
 
-  <div class="metrics-grid" id="dashboardMetrics">
-    <div class="metric-card">
-      <h3>Total Tickets</h3>
-      <p id="totalCount">Loading...</p>
-    </div>
+  <div id="dashboardContainer">
+    <p style="color: var(--accent);">Fetching live data from Zoho...</p>
   </div>
 
   <script>
+    // 🔴 IMPORTANT: PASTE YOUR GOOGLE WEB APP URL HERE
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec';
-    
+
     async function fetchData() {
-      const metricsContainer = document.getElementById('dashboardMetrics');
+      const container = document.getElementById('dashboardContainer');
       
       try {
-        // ADDED redirect: 'follow' TO HANDLE GOOGLE APPS SCRIPT REDIRECTS
         const response = await fetch(PROXY_URL, {
           method: 'GET',
           redirect: 'follow'
         });
 
         const result = await response.json();
-        
         if (!result.data) throw new Error(result.error || 'Failed to load tickets');
         
         const tickets = result.data;
-        const deptCounts = {};
-        const priorityCounts = { 'Critical': 0, 'Urgent': 0, 'High': 0 };
+        
+        // --- 1. SET UP DATE BOUNDARIES ---
+        const today = new Date();
+        today.setHours(0,0,0,0);
 
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const last7Days = new Date(today);
+        last7Days.setDate(last7Days.getDate() - 7);
+
+        const currentWeek = new Date(today);
+        const dayOfWeek = currentWeek.getDay() || 7; // Treat Sunday(0) as 7
+        currentWeek.setDate(currentWeek.getDate() - dayOfWeek + 1); // Start on Monday
+
+        const lastWeekStart = new Date(currentWeek);
+        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+        const lastWeekEnd = new Date(currentWeek);
+
+        const last30Days = new Date(today);
+        last30Days.setDate(last30Days.getDate() - 30);
+
+        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+        lastMonthEnd.setHours(23,59,59,999);
+
+        // --- 2. COUNTERS ---
+        const timeCounts = {
+          today: 0, yesterday: 0, last7: 0, currentWeek: 0, 
+          lastWeek: 0, last30: 0, currentMonth: 0, lastMonth: 0
+        };
+        const deptCounts = {};
+        const priorityCounts = { 'Critical': 0, 'Urgent': 0, 'High': 0, 'Medium': 0, 'Low': 0 };
+
+        // --- 3. PROCESS TICKETS ---
         tickets.forEach(ticket => {
+          // Time math
+          const tDate = new Date(ticket.createdTime);
+          if (tDate >= today) timeCounts.today++;
+          if (tDate >= yesterday && tDate < today) timeCounts.yesterday++;
+          if (tDate >= last7Days) timeCounts.last7++;
+          if (tDate >= currentWeek) timeCounts.currentWeek++;
+          if (tDate >= lastWeekStart && tDate < lastWeekEnd) timeCounts.lastWeek++;
+          if (tDate >= last30Days) timeCounts.last30++;
+          if (tDate >= currentMonth) timeCounts.currentMonth++;
+          if (tDate >= lastMonthStart && tDate <= lastMonthEnd) timeCounts.lastMonth++;
+
+          // Dept math
           const deptName = ticket.department ? ticket.department.name : 'General';
           deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
 
+          // Priority math
           const priority = ticket.priority || 'None';
-          if (priorityCounts[priority] !== undefined) {
-             priorityCounts[priority]++;
-          }
+          if (priorityCounts[priority] !== undefined) priorityCounts[priority]++;
         });
 
-        metricsContainer.innerHTML = `
-          <a href="tickets.html?filter=all" target="_blank" class="metric-card">
-            <h3>Total Tickets</h3>
-            <p>${tickets.length}</p>
-          </a>
+        // --- 4. RENDER UI ---
+        let html = `
+          <div class="dashboard-grid" style="margin-bottom: 20px;">
+            <a href="tickets.html?filter=all" target="_blank" class="metric-card total-card">
+              <h3>Total Open Tickets (All Time)</h3>
+              <p>${tickets.length}</p>
+            </a>
+          </div>
+
+          <div class="section-title">Ticket Volumes (Based on Creation Date)</div>
+          <div class="dashboard-grid">
+            <a href="tickets.html?filter=timeframe&value=today" target="_blank" class="metric-card"><h3>Today</h3><p>${timeCounts.today}</p></a>
+            <a href="tickets.html?filter=timeframe&value=yesterday" target="_blank" class="metric-card"><h3>Yesterday</h3><p>${timeCounts.yesterday}</p></a>
+            <a href="tickets.html?filter=timeframe&value=currentWeek" target="_blank" class="metric-card"><h3>This Week</h3><p>${timeCounts.currentWeek}</p></a>
+            <a href="tickets.html?filter=timeframe&value=lastWeek" target="_blank" class="metric-card"><h3>Last Week</h3><p>${timeCounts.lastWeek}</p></a>
+            <a href="tickets.html?filter=timeframe&value=last7" target="_blank" class="metric-card"><h3>Last 7 Days</h3><p>${timeCounts.last7}</p></a>
+            <a href="tickets.html?filter=timeframe&value=currentMonth" target="_blank" class="metric-card"><h3>This Month</h3><p>${timeCounts.currentMonth}</p></a>
+            <a href="tickets.html?filter=timeframe&value=lastMonth" target="_blank" class="metric-card"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
+            <a href="tickets.html?filter=timeframe&value=last30" target="_blank" class="metric-card"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
+          </div>
+
+          <div class="section-title">By Priority</div>
+          <div class="dashboard-grid">
         `;
 
         Object.entries(priorityCounts).forEach(([priority, count]) => {
-          metricsContainer.innerHTML += `
-            <a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card">
-              <h3 class="priority-badge">🚨 Priority: ${priority}</h3>
-              <p>${count}</p>
-            </a>
-          `;
+          if (count > 0) {
+            const color = (priority === 'Critical' || priority === 'Urgent') ? '#ef4444' : '#f59e0b';
+            html += `
+              <a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card">
+                <h3 class="priority-badge" style="background-color: ${color};">${priority}</h3>
+                <p>${count}</p>
+              </a>
+            `;
+          }
         });
 
+        html += `</div><div class="section-title">By Department</div><div class="dashboard-grid">`;
+
         Object.entries(deptCounts).forEach(([dept, count]) => {
-          metricsContainer.innerHTML += `
+          html += `
             <a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" target="_blank" class="metric-card">
               <h3>${dept}</h3>
               <p>${count}</p>
@@ -142,8 +222,11 @@
           `;
         });
 
+        html += `</div>`;
+        container.innerHTML = html;
+
       } catch (err) {
-        metricsContainer.innerHTML = `<p style="color: #ef4444;">Error loading dashboard: ${err.message}</p>`;
+        container.innerHTML = `<p style="color: #ef4444;">Error loading dashboard: ${err.message}</p>`;
       }
     }
 
