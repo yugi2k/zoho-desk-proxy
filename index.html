@@ -3,9 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zoho Desk Live Portal</title>
+  <title>Mindmatrix Desk Portal</title>
+  
+  <!-- 1. FAVICON -->
+  <link rel="icon" href="https://www.mindmatrix.net/favicon.ico" type="image/x-icon">
+  
+  <!-- Google Identity Services for SSO -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     :root {
+      /* Dark Mode (Default) */
       --bg-color: #0f172a;
       --card-bg: #1e293b;
       --text-main: #f8fafc;
@@ -13,13 +21,26 @@
       --accent: #38bdf8;
       --border: #334155;
     }
+    
+    /* 2. LIGHT MODE VARIABLES */
+    body.light-mode {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border: #cbd5e1;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
       margin: 0;
       padding: 2rem;
+      transition: background-color 0.3s, color 0.3s;
     }
+
+    /* Top Navigation */
     .header {
       display: flex;
       justify-content: space-between;
@@ -28,24 +49,107 @@
       border-bottom: 1px solid var(--border);
       padding-bottom: 20px;
     }
-    .header h1 { margin: 0; display: flex; align-items: center; gap: 10px; }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    /* 3. LOGO */
+    .brand-logo {
+      height: 40px;
+      transition: filter 0.3s;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-toggle:hover { background-color: var(--card-bg); }
+
+    /* Login Screen Styles */
+    #loginScreen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 70vh;
+    }
+    .login-card {
+      background-color: var(--card-bg);
+      padding: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .login-card h2 { margin-top: 0; margin-bottom: 5px; }
+    .login-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; }
     
+    .otp-group { margin-bottom: 20px; text-align: left; }
+    .otp-group label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted); font-weight: bold;}
+    .otp-group input {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .btn-login {
+      width: 100%;
+      background-color: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-login:hover { opacity: 0.9; }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0;
+      color: var(--text-muted);
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .divider:not(:empty)::before { margin-right: .25em; }
+    .divider:not(:empty)::after { margin-left: .25em; }
+
+    /* Dashboard Styles */
+    #dashboardScreen { display: none; }
     .section-title {
       font-size: 1.2rem;
       color: var(--text-muted);
       margin: 30px 0 15px 0;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      border-bottom: 1px solid #1e293b;
+      border-bottom: 1px solid var(--border);
       padding-bottom: 8px;
     }
-
     .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 20px;
     }
-    
     .metric-card {
       background-color: var(--card-bg);
       padding: 20px;
@@ -55,106 +159,179 @@
       text-decoration: none;
       color: inherit;
       transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    .metric-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-      border-color: var(--accent);
-    }
-    .metric-card h3 {
-      margin: 0;
-      font-size: 1rem;
-      color: var(--text-muted);
-    }
-    .metric-card p {
-      margin: 10px 0 0 0;
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: var(--accent);
-    }
-    .priority-badge {
-      display: inline-block;
-      background-color: #ef4444;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-    .total-card {
-      grid-column: 1 / -1;
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border-color: var(--accent);
-    }
+    .metric-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+    .metric-card h3 { margin: 0; font-size: 1rem; color: var(--text-muted); }
+    .metric-card p { margin: 10px 0 0 0; font-size: 2.5rem; font-weight: bold; color: var(--accent); }
+    .total-card { grid-column: 1 / -1; border-color: var(--accent); }
     .total-card h3 { color: var(--text-main); font-size: 1.2rem; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>🎫 Zoho Desk Live Portal</h1>
+    <div class="header-left">
+      <!-- Dynamic Logo -->
+      <img id="mainLogo" class="brand-logo" src="https://www.mindmatrix.net/images/white-logo.svg" alt="Mindmatrix">
+      <h1 style="margin: 0; font-size: 1.5rem;">Support Portal</h1>
+    </div>
+    
+    <!-- Light/Dark Mode Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span>
+    </button>
   </div>
 
-  <div id="dashboardContainer">
-    <p style="color: var(--accent);">Fetching live data from Zoho...</p>
+  <!-- ============================== -->
+  <!-- 4. LOGIN SCREEN -->
+  <!-- ============================== -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <h2>Staff Login</h2>
+      <p>Authorized @mindmatrix.net accounts only.</p>
+      
+      <!-- OTP Login UI -->
+      <div class="otp-group">
+        <label>Email Address</label>
+        <input type="email" id="emailInput" placeholder="name@mindmatrix.net">
+        <button class="btn-login" onclick="requestOTP()">Send OTP</button>
+      </div>
+
+      <div class="otp-group" id="otpStep2" style="display: none;">
+        <label>One-Time Password</label>
+        <input type="text" id="otpInput" placeholder="Enter OTP">
+        <button class="btn-login" onclick="verifyOTP()">Login</button>
+      </div>
+
+      <div class="divider">OR</div>
+
+      <!-- Google SSO Button Container -->
+      <div id="g_id_onload"
+         data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleGoogleLogin"
+         data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+         data-type="standard"
+         data-shape="rectangular"
+         data-theme="outline"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="left">
+      </div>
+      
+      <p id="loginError" style="color: #ef4444; margin-top: 15px; display: none;"></p>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- DASHBOARD SCREEN -->
+  <!-- ============================== -->
+  <div id="dashboardScreen">
+    <div id="dashboardContainer">
+      <p style="color: var(--accent);">Fetching live data from Zoho...</p>
+    </div>
   </div>
 
   <script>
     // 🔴 IMPORTANT: PASTE YOUR GOOGLE WEB APP URL HERE
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec';
 
+    // --- THEME MANAGEMENT ---
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light') toggleTheme(true);
+    }
+
+    function toggleTheme(forceLight = false) {
+      const isLight = forceLight || !document.body.classList.contains('light-mode');
+      
+      if (isLight) {
+        document.body.classList.add('light-mode');
+        document.getElementById('mainLogo').src = 'https://www.mindmatrix.net/images/logo.svg';
+        document.getElementById('themeIcon').textContent = '🌙';
+        document.getElementById('themeText').textContent = 'Dark Mode';
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.body.classList.remove('light-mode');
+        document.getElementById('mainLogo').src = 'https://www.mindmatrix.net/images/white-logo.svg';
+        document.getElementById('themeIcon').textContent = '☀️';
+        document.getElementById('themeText').textContent = 'Light Mode';
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+
+    // --- LOGIN MANAGEMENT ---
+    function showDashboard() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboardScreen').style.display = 'block';
+      fetchData(); // Only fetch data after successful login
+    }
+
+    function showError(msg) {
+      const errEl = document.getElementById('loginError');
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+
+    // OTP Mock Functions (Requires Backend to truly work)
+    function requestOTP() {
+      const email = document.getElementById('emailInput').value;
+      if (!email.endsWith('@mindmatrix.net')) {
+        showError('Access restricted to @mindmatrix.net emails.');
+        return;
+      }
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('otpStep2').style.display = 'block';
+      // In reality, this is where you'd call a backend script to email the code
+      alert("Note: This is a frontend simulation. You need a backend to actually send emails!");
+    }
+
+    function verifyOTP() {
+      // Stub for OTP verification
+      showDashboard();
+    }
+
+    // Google SSO Callback
+    function handleGoogleLogin(response) {
+      // Decode the JWT token Google sends back
+      const responsePayload = JSON.parse(atob(response.credential.split('.')[1]));
+      
+      // Validate Domain
+      if (responsePayload.email.endsWith('@mindmatrix.net')) {
+        showDashboard();
+      } else {
+        showError('Access denied. Must use a Mindmatrix Google account.');
+      }
+    }
+
+    // --- DASHBOARD DATA FETCHING ---
     async function fetchData() {
       const container = document.getElementById('dashboardContainer');
-      
       try {
-        const response = await fetch(PROXY_URL, {
-          method: 'GET',
-          redirect: 'follow'
-        });
-
+        const response = await fetch(PROXY_URL, { method: 'GET', redirect: 'follow' });
         const result = await response.json();
         if (!result.data) throw new Error(result.error || 'Failed to load tickets');
         
         const tickets = result.data;
-        
-        // --- 1. SET UP DATE BOUNDARIES ---
-        const today = new Date();
-        today.setHours(0,0,0,0);
-
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        const last7Days = new Date(today);
-        last7Days.setDate(last7Days.getDate() - 7);
-
-        const currentWeek = new Date(today);
-        const dayOfWeek = currentWeek.getDay() || 7; // Treat Sunday(0) as 7
-        currentWeek.setDate(currentWeek.getDate() - dayOfWeek + 1); // Start on Monday
-
-        const lastWeekStart = new Date(currentWeek);
-        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+        const last7Days = new Date(today); last7Days.setDate(last7Days.getDate() - 7);
+        const currentWeek = new Date(today); currentWeek.setDate(currentWeek.getDate() - (currentWeek.getDay() || 7) + 1);
+        const lastWeekStart = new Date(currentWeek); lastWeekStart.setDate(lastWeekStart.getDate() - 7);
         const lastWeekEnd = new Date(currentWeek);
-
-        const last30Days = new Date(today);
-        last30Days.setDate(last30Days.getDate() - 30);
-
+        const last30Days = new Date(today); last30Days.setDate(last30Days.getDate() - 30);
         const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
         const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-        lastMonthEnd.setHours(23,59,59,999);
+        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
 
-        // --- 2. COUNTERS ---
-        const timeCounts = {
-          today: 0, yesterday: 0, last7: 0, currentWeek: 0, 
-          lastWeek: 0, last30: 0, currentMonth: 0, lastMonth: 0
-        };
+        const timeCounts = { today: 0, yesterday: 0, last7: 0, currentWeek: 0, lastWeek: 0, last30: 0, currentMonth: 0, lastMonth: 0 };
         const deptCounts = {};
         const priorityCounts = { 'Critical': 0, 'Urgent': 0, 'High': 0, 'Medium': 0, 'Low': 0 };
 
-        // --- 3. PROCESS TICKETS ---
         tickets.forEach(ticket => {
-          // Time math
           const tDate = new Date(ticket.createdTime);
           if (tDate >= today) timeCounts.today++;
           if (tDate >= yesterday && tDate < today) timeCounts.yesterday++;
@@ -165,16 +342,13 @@
           if (tDate >= currentMonth) timeCounts.currentMonth++;
           if (tDate >= lastMonthStart && tDate <= lastMonthEnd) timeCounts.lastMonth++;
 
-          // Dept math
           const deptName = ticket.department ? ticket.department.name : 'General';
           deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
 
-          // Priority math
           const priority = ticket.priority || 'None';
           if (priorityCounts[priority] !== undefined) priorityCounts[priority]++;
         });
 
-        // --- 4. RENDER UI ---
         let html = `
           <div class="dashboard-grid" style="margin-bottom: 20px;">
             <a href="tickets.html?filter=all" target="_blank" class="metric-card total-card">
@@ -182,7 +356,6 @@
               <p>${tickets.length}</p>
             </a>
           </div>
-
           <div class="section-title">Ticket Volumes (Based on Creation Date)</div>
           <div class="dashboard-grid">
             <a href="tickets.html?filter=timeframe&value=today" target="_blank" class="metric-card"><h3>Today</h3><p>${timeCounts.today}</p></a>
@@ -194,34 +367,19 @@
             <a href="tickets.html?filter=timeframe&value=lastMonth" target="_blank" class="metric-card"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
             <a href="tickets.html?filter=timeframe&value=last30" target="_blank" class="metric-card"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
           </div>
-
           <div class="section-title">By Priority</div>
           <div class="dashboard-grid">
         `;
-
         Object.entries(priorityCounts).forEach(([priority, count]) => {
           if (count > 0) {
             const color = (priority === 'Critical' || priority === 'Urgent') ? '#ef4444' : '#f59e0b';
-            html += `
-              <a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card">
-                <h3 class="priority-badge" style="background-color: ${color};">${priority}</h3>
-                <p>${count}</p>
-              </a>
-            `;
+            html += `<a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card"><h3 style="background-color: ${color}; color: white; display: inline-block; padding: 4px 12px; border-radius: 6px;">${priority}</h3><p>${count}</p></a>`;
           }
         });
-
         html += `</div><div class="section-title">By Department</div><div class="dashboard-grid">`;
-
         Object.entries(deptCounts).forEach(([dept, count]) => {
-          html += `
-            <a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" target="_blank" class="metric-card">
-              <h3>${dept}</h3>
-              <p>${count}</p>
-            </a>
-          `;
+          html += `<a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" target="_blank" class="metric-card"><h3>${dept}</h3><p>${count}</p></a>`;
         });
-
         html += `</div>`;
         container.innerHTML = html;
 
@@ -230,7 +388,8 @@
       }
     }
 
-    fetchData();
+    // Run theme checker on load
+    initTheme();
   </script>
 </body>
 </html>
