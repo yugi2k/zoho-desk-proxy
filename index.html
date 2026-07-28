@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zoho Desk Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --accent: #38bdf8;
+      --border: #334155;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    h1 { margin: 0; font-size: 1.5rem; }
+
+    button {
+      background-color: var(--accent);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Metrics Row */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .metric-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .metric-card h3 { margin: 0 0 8px 0; font-size: 0.9rem; color: #94a3b8; }
+    .metric-card p { margin: 0; font-size: 2rem; font-weight: bold; color: var(--accent); }
+
+    /* Table Styles */
+    .table-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: rgba(255, 255, 255, 0.03);
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #334155;
+    }
+
+    a.ticket-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a.ticket-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎫 Zoho Desk Live Portal</h1>
+    <button onclick="fetchData()">Refresh Data</button>
+  </header>
+
+  <!-- Department Summary Cards -->
+  <div class="metrics-grid" id="departmentMetrics">
+    <div class="metric-card">
+      <h3>Total Fetched</h3>
+      <p id="totalCount">0</p>
+    </div>
+  </div>
+
+  <!-- Tickets Table -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Subject</th>
+          <th>Department</th>
+          <th>Assignee</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="ticketTableBody">
+        <tr><td colspan="6" style="text-align:center;">Loading ticket data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // REPLACE THIS WITH YOUR DEPLOYED VERCEL URL
+    const PROXY_URL = 'https://your-app.vercel.app/api/tickets';
+    // REPLACE WITH YOUR ZOHO DESK PORTAL NAME (for direct links)
+    const ZOHO_PORTAL_NAME = 'yourcompanydesk'; 
+
+    async function fetchData() {
+      const tableBody = document.getElementById('ticketTableBody');
+      const metricsContainer = document.getElementById('departmentMetrics');
+      
+      try {
+        const response = await fetch(PROXY_URL);
+        const result = await response.json();
+        
+        if (!result.data) {
+          throw new Error(result.error || 'Failed to load tickets');
+        }
+
+        const tickets = result.data;
+        document.getElementById('totalCount').textContent = tickets.length;
+
+        // Reset Table & Department Counts
+        tableBody.innerHTML = '';
+        const deptCounts = {};
+
+        tickets.forEach(ticket => {
+          // Department extraction
+          const deptName = ticket.department ? ticket.department.name : 'General';
+          deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
+
+          // Assignee extraction
+          const assigneeName = ticket.assignee 
+            ? `${ticket.assignee.firstName \vert{}\vert{} ''}${ticket.assignee.lastName || ''}`.trim()
+            : 'Unassigned';
+
+          // Zoho Direct Ticket Link
+          const deskDirectUrl = `https://desk.zoho.com/support/${ZOHO_PORTAL_NAME}/ShowHomePage.do#Cases/dv/${ticket.id}`;
+
+          // Append Row
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>#${ticket.ticketNumber}</td>
+            <td><strong>${ticket.subject}</strong></td>
+            <td><span class="badge">${deptName}</span></td>
+            <td>${assigneeName}</td>
+            <td>${ticket.status}</td>
+            <td><a href="${deskDirectUrl}" target="_blank" class="ticket-link">Open Ticket ↗</a></td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        // Update Department Summary Cards
+        metricsContainer.innerHTML = `
+          <div class="metric-card">
+            <h3>Total Tickets</h3>
+            <p>${tickets.length}</p>
+          </div>
+        `;
+
+        Object.entries(deptCounts).forEach(([dept, count]) => {
+          const card = document.createElement('div');
+          card.className = 'metric-card';
+          card.innerHTML = `<h3>${dept}</h3><p>${count}</p>`;
+          metricsContainer.appendChild(card);
+        });
+
+      } catch (err) {
+        tableBody.innerHTML = `<tr><td colspan="6" style="color: #ef4444; text-align:center;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Load data on start
+    fetchData();
+  </script>
+</body>
+</html>
