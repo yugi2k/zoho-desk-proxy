@@ -490,7 +490,87 @@
       URL.revokeObjectURL(url); 
     }
 
-    init();
+    async function init() {
+      try {
+        const response = await fetch(PROXY_URL, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        
+        const result = await response.json();
+        if (!result.data) throw new Error(result.error);
+        
+        let allTickets = result.data;
+        
+        // Apply Initial URL Filters
+        if (filterType === 'priority') {
+          globalTickets = allTickets.filter(t => t.priority === filterValue);
+        } else if (filterType === 'department') {
+          globalTickets = allTickets.filter(t => (t.department ? t.department.name : 'General') === filterValue);
+        } else if (filterType === 'timeframe') {
+          // NEW DATE ROUTING LOGIC
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          
+          globalTickets = allTickets.filter(t => {
+            const tDate = new Date(t.createdTime);
+            
+            if (filterValue === 'today') return tDate >= today;
+            
+            if (filterValue === 'yesterday') {
+              const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+              return tDate >= yest && tDate < today;
+            }
+            if (filterValue === 'last7') {
+              const l7 = new Date(today); l7.setDate(l7.getDate() - 7);
+              return tDate >= l7;
+            }
+            if (filterValue === 'currentWeek') {
+              const cw = new Date(today); 
+              cw.setDate(cw.getDate() - (cw.getDay() || 7) + 1);
+              return tDate >= cw;
+            }
+            if (filterValue === 'lastWeek') {
+              const cw = new Date(today); cw.setDate(cw.getDate() - (cw.getDay() || 7) + 1);
+              const lw = new Date(cw); lw.setDate(lw.getDate() - 7);
+              return tDate >= lw && tDate < cw;
+            }
+            if (filterValue === 'last30') {
+              const l30 = new Date(today); l30.setDate(l30.getDate() - 30);
+              return tDate >= l30;
+            }
+            if (filterValue === 'currentMonth') {
+              const cm = new Date(today.getFullYear(), today.getMonth(), 1);
+              return tDate >= cm;
+            }
+            if (filterValue === 'lastMonth') {
+              const lmStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+              const lmEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
+              return tDate >= lmStart && tDate <= lmEnd;
+            }
+            return true;
+          });
+
+          // Pretty-print the title based on the value
+          const titles = {
+            today: "Today's", yesterday: "Yesterday's", last7: "Last 7 Days", 
+            currentWeek: "This Week's", lastWeek: "Last Week's", 
+            last30: "Last 30 Days", currentMonth: "This Month's", lastMonth: "Last Month's"
+          };
+          document.getElementById('pageTitle').textContent = `${titles[filterValue]} Tickets`;
+          
+        } else {
+          globalTickets = allTickets;
+        }
+
+        currentFilteredTickets = [...globalTickets];
+        populateFilterDropdowns();
+        renderTable(currentFilteredTickets);
+
+      } catch (err) {
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="color: #ef4444; text-align:center;">Error: ${err.message}</td></tr>`;
+      }
+    }
   </script>
 </body>
 </html>
