@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticket Details</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --accent: #38bdf8;
+      --border: #334155;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    h1 { margin: 0; font-size: 1.5rem; }
+
+    /* Table Styles */
+    .table-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background-color: rgba(255, 255, 255, 0.03);
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #334155;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #7f1d1d;
+      color: #fca5a5;
+    }
+
+    a.ticket-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a.ticket-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 id="pageTitle">Loading Tickets...</h1>
+  </header>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Subject</th>
+          <th>Priority</th>
+          <th>Department</th>
+          <th>Assignee</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="ticketTableBody">
+        <tr><td colspan="7" style="text-align:center;">Fetching data from Zoho...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const PROXY_URL = '/api/tickets';
+    const ZOHO_PORTAL_NAME = 'mindmatrixinc'; 
+
+    // Read URL parameters to know what block was clicked
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterType = urlParams.get('filter'); 
+    const filterValue = urlParams.get('value');
+
+    // Set Header Title
+    document.getElementById('pageTitle').textContent = filterType === 'all' 
+      ? 'All Open Tickets' 
+      : `${filterValue} Tickets`;
+
+    async function loadTable() {
+      const tableBody = document.getElementById('ticketTableBody');
+      
+      try {
+        const response = await fetch(PROXY_URL);
+        const result = await response.json();
+        if (!result.data) throw new Error(result.error);
+        
+        const allTickets = result.data;
+        
+        // Filter the tickets based on what block was clicked
+        let filteredTickets = allTickets;
+        if (filterType === 'priority') {
+          filteredTickets = allTickets.filter(t => t.priority === filterValue);
+        } else if (filterType === 'department') {
+          filteredTickets = allTickets.filter(t => (t.department ? t.department.name : 'General') === filterValue);
+        }
+
+        tableBody.innerHTML = '';
+
+        if(filteredTickets.length === 0) {
+           tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No tickets found.</td></tr>`;
+           return;
+        }
+
+        // Render the filtered tickets
+        filteredTickets.forEach(ticket => {
+          const deptName = ticket.department ? ticket.department.name : 'General';
+          const priority = ticket.priority || '-';
+          
+          const assigneeName = ticket.assignee 
+            ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim()
+            : 'Unassigned';
+
+          const deskDirectUrl = `https://desk.zoho.com/support/${ZOHO_PORTAL_NAME}/ShowHomePage.do#Cases/dv/${ticket.id}`;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>#${ticket.ticketNumber}</td>
+            <td><strong>${ticket.subject}</strong></td>
+            <td>${priority !== '-' ? `<span class="priority-badge">${priority}</span>` : priority}</td>
+            <td><span class="badge">${deptName}</span></td>
+            <td>${assigneeName}</td>
+            <td>${ticket.status}</td>
+            <td><a href="${deskDirectUrl}" target="_blank" class="ticket-link">Open Ticket ↗</a></td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+      } catch (err) {
+        tableBody.innerHTML = `<tr><td colspan="7" style="color: #ef4444; text-align:center;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    loadTable();
+  </script>
+</body>
+</html>
