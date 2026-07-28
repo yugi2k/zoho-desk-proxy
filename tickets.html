@@ -110,14 +110,13 @@
 
   <script>
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec';
+
     const ZOHO_PORTAL_NAME = 'mindmatrixinc'; 
 
-    // Read URL parameters to know what block was clicked
     const urlParams = new URLSearchParams(window.location.search);
     const filterType = urlParams.get('filter'); 
     const filterValue = urlParams.get('value');
 
-    // Set Header Title
     document.getElementById('pageTitle').textContent = filterType === 'all' 
       ? 'All Open Tickets' 
       : `${filterValue} Tickets`;
@@ -126,13 +125,17 @@
       const tableBody = document.getElementById('ticketTableBody');
       
       try {
-        const response = await fetch(PROXY_URL);
+        // ADDED redirect: 'follow'
+        const response = await fetch(PROXY_URL, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        
         const result = await response.json();
         if (!result.data) throw new Error(result.error);
         
         const allTickets = result.data;
         
-        // Filter the tickets based on what block was clicked
         let filteredTickets = allTickets;
         if (filterType === 'priority') {
           filteredTickets = allTickets.filter(t => t.priority === filterValue);
@@ -147,7 +150,6 @@
            return;
         }
 
-        // Render the filtered tickets
         filteredTickets.forEach(ticket => {
           const deptName = ticket.department ? ticket.department.name : 'General';
           const priority = ticket.priority || '-';
@@ -156,7 +158,7 @@
             ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim()
             : 'Unassigned';
 
-          const deskDirectUrl = `https://desk.zoho.com/support/${ZOHO_PORTAL_NAME}/ShowHomePage.do#Cases/dv/${ticket.id}`;
+          const deskDirectUrl = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
 
           const row = document.createElement('tr');
           row.innerHTML = `
