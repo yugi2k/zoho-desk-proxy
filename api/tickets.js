@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       grant_type: 'refresh_token'
     });
 
-    const tokenRes = await fetch(`https://accounts.${ZOHO_DOMAIN}/oauth/v2/token`, {
+    const ticketsRes = await fetch(`https://desk.${ZOHO_DOMAIN}/api/v1/tickets?include=assignee,departments&limit=${limit}&from=${from}&status=Open, In Progress, Working on it, Pending, Review, Awaiting Response`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: tokenParams.toString()
