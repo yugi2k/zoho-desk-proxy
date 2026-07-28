@@ -43,7 +43,7 @@
     /* Metrics Row */
     .metrics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 16px;
       margin-bottom: 32px;
     }
@@ -53,52 +53,23 @@
       border: 1px solid var(--border);
       padding: 20px;
       border-radius: 8px;
+      text-decoration: none; /* Removes link underline */
+      display: block;
+      transition: all 0.2s ease-in-out;
+    }
+
+    /* Hover effect to show it's clickable */
+    .metric-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .metric-card h3 { margin: 0 0 8px 0; font-size: 0.9rem; color: #94a3b8; }
     .metric-card p { margin: 0; font-size: 2rem; font-weight: bold; color: var(--accent); }
+    
+    .priority-badge { color: #ef4444; } /* Red color for priority headers */
 
-    /* Table Styles */
-    .table-container {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-
-    th, td {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      background-color: rgba(255, 255, 255, 0.03);
-      font-size: 0.85rem;
-      color: #94a3b8;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: #334155;
-    }
-
-    a.ticket-link {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    a.ticket-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -108,96 +79,75 @@
     <button onclick="fetchData()">Refresh Data</button>
   </header>
 
-  <!-- Department Summary Cards -->
-  <div class="metrics-grid" id="departmentMetrics">
+  <div class="metrics-grid" id="dashboardMetrics">
     <div class="metric-card">
-      <h3>Total Fetched</h3>
-      <p id="totalCount">0</p>
+      <h3>Total Tickets</h3>
+      <p id="totalCount">Loading...</p>
     </div>
   </div>
 
-  <!-- Tickets Table -->
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>Ticket #</th>
-          <th>Subject</th>
-          <th>Department</th>
-          <th>Assignee</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="ticketTableBody">
-        <tr><td colspan="6" style="text-align:center;">Loading ticket data...</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-<script>
+  <script>
     const PROXY_URL = '/api/tickets';
-    const ZOHO_PORTAL_NAME = 'mindmatrixinc'; 
 
     async function fetchData() {
-      const tableBody = document.getElementById('ticketTableBody');
-      const metricsContainer = document.getElementById('departmentMetrics');
+      const metricsContainer = document.getElementById('dashboardMetrics');
       
       try {
         const response = await fetch(PROXY_URL);
         const result = await response.json();
         
-        if (!result.data) {
-          throw new Error(result.error || 'Failed to load tickets');
-        }
-
+        if (!result.data) throw new Error(result.error || 'Failed to load tickets');
+        
         const tickets = result.data;
-        document.getElementById('totalCount').textContent = tickets.length;
-
-        tableBody.innerHTML = '';
         const deptCounts = {};
+        const priorityCounts = { 'Critical': 0, 'Urgent': 0, 'High': 0 };
 
         tickets.forEach(ticket => {
+          // Count Departments
           const deptName = ticket.department ? ticket.department.name : 'General';
           deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
 
-          const assigneeName = ticket.assignee 
-            ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim()
-            : 'Unassigned';
-
-          const deskDirectUrl = `https://desk.zoho.com/support/${ZOHO_PORTAL_NAME}/ShowHomePage.do#Cases/dv/${ticket.id}`;
-
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>#${ticket.ticketNumber}</td>
-            <td><strong>${ticket.subject}</strong></td>
-            <td><span class="badge">${deptName}</span></td>
-            <td>${assigneeName}</td>
-            <td>${ticket.status}</td>
-            <td><a href="${deskDirectUrl}" target="_blank" class="ticket-link">Open Ticket ↗</a></td>
-          `;
-          tableBody.appendChild(row);
+          // Count Priorities
+          const priority = ticket.priority || 'None';
+          if (priorityCounts[priority] !== undefined) {
+             priorityCounts[priority]++;
+          }
         });
 
+        // 1. Render Total Tickets Block (Clickable)
         metricsContainer.innerHTML = `
-          <div class="metric-card">
+          <a href="tickets.html?filter=all" target="_blank" class="metric-card">
             <h3>Total Tickets</h3>
             <p>${tickets.length}</p>
-          </div>
+          </a>
         `;
 
+        // 2. Render Priority Blocks (Clickable)
+        Object.entries(priorityCounts).forEach(([priority, count]) => {
+          metricsContainer.innerHTML += `
+            <a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card">
+              <h3 class="priority-badge">🚨 Priority: ${priority}</h3>
+              <p>${count}</p>
+            </a>
+          `;
+        });
+
+        // 3. Render Department Blocks (Clickable)
         Object.entries(deptCounts).forEach(([dept, count]) => {
-          const card = document.createElement('div');
-          card.className = 'metric-card';
-          card.innerHTML = `<h3>${dept}</h3><p>${count}</p>`;
-          metricsContainer.appendChild(card);
+          metricsContainer.innerHTML += `
+            <a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" target="_blank" class="metric-card">
+              <h3>${dept}</h3>
+              <p>${count}</p>
+            </a>
+          `;
         });
 
       } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="6" style="color: #ef4444; text-align:center;">Error: ${err.message}</td></tr>`;
+        metricsContainer.innerHTML = `<p style="color: #ef4444;">Error loading dashboard: ${err.message}</p>`;
       }
     }
 
     fetchData();
   </script>
+</body>
 </html>
