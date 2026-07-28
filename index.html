@@ -135,10 +135,8 @@
     </table>
   </div>
 
-  <script>
-    // REPLACE THIS WITH YOUR DEPLOYED VERCEL URL
+<script>
     const PROXY_URL = '/api/tickets';
-    // REPLACE WITH YOUR ZOHO DESK PORTAL NAME (for direct links)
     const ZOHO_PORTAL_NAME = 'mindmatrixinc'; 
 
     async function fetchData() {
@@ -156,24 +154,19 @@
         const tickets = result.data;
         document.getElementById('totalCount').textContent = tickets.length;
 
-        // Reset Table & Department Counts
         tableBody.innerHTML = '';
         const deptCounts = {};
 
         tickets.forEach(ticket => {
-          // Department extraction
           const deptName = ticket.department ? ticket.department.name : 'General';
           deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
 
-          // Assignee extraction
           const assigneeName = ticket.assignee 
-            ? `${ticket.assignee.firstName \vert{}\vert{} ''}${ticket.assignee.lastName || ''}`.trim()
+            ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim()
             : 'Unassigned';
 
-          // Zoho Direct Ticket Link
           const deskDirectUrl = `https://desk.zoho.com/support/${ZOHO_PORTAL_NAME}/ShowHomePage.do#Cases/dv/${ticket.id}`;
 
-          // Append Row
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>#${ticket.ticketNumber}</td>
@@ -186,7 +179,6 @@
           tableBody.appendChild(row);
         });
 
-        // Update Department Summary Cards
         metricsContainer.innerHTML = `
           <div class="metric-card">
             <h3>Total Tickets</h3>
@@ -206,8 +198,6 @@
       }
     }
 
-    // Load data on start
     fetchData();
   </script>
-</body>
 </html>
