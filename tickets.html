@@ -3,115 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ticket Details</title>
+  <title>Tickets Dashboard</title>
   <style>
     :root {
-      --bg: #0f172a;
+      --bg-color: #0f172a;
       --card-bg: #1e293b;
-      --text: #f8fafc;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
       --accent: #38bdf8;
       --border: #334155;
+      --priority-high: #ef4444;
     }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
       margin: 0;
-      padding: 24px;
+      padding: 2rem;
     }
-
-    header {
+    .header-container {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 20px;
     }
-
-    h1 { margin: 0; font-size: 1.5rem; }
+    h1 { margin: 0; }
+    
+    /* Control Panel Styles */
+    .controls-panel {
+      display: flex;
+      gap: 15px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      background-color: var(--card-bg);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .filter-group label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .filter-group select, .filter-group input {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 6px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .filter-group select[multiple] {
+      height: 60px; /* Show a few options */
+      scrollbar-width: thin;
+    }
+    .btn-export {
+      background-color: #10b981;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 38px;
+      transition: background 0.2s;
+    }
+    .btn-export:hover {
+      background-color: #059669;
+    }
 
     /* Table Styles */
-    .table-container {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      text-align: left;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
     }
-
     th, td {
-      padding: 14px 18px;
+      padding: 15px;
+      text-align: left;
       border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
     }
-
     th {
-      background-color: rgba(255, 255, 255, 0.03);
-      font-size: 0.85rem;
-      color: #94a3b8;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
+      background-color: #1e293b;
+      color: var(--text-muted);
       font-weight: 600;
-      background: #334155;
     }
-
     .priority-badge {
-      display: inline-block;
+      background-color: var(--priority-high);
+      color: white;
       padding: 4px 8px;
       border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: #7f1d1d;
-      color: #fca5a5;
+      font-size: 0.8rem;
+      font-weight: bold;
     }
-
-    a.ticket-link {
+    .dept-badge {
+      background-color: #475569;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .ticket-link {
       color: var(--accent);
       text-decoration: none;
-      font-weight: 600;
+      font-weight: bold;
     }
-
-    a.ticket-link:hover { text-decoration: underline; }
+    .ticket-link:hover { text-decoration: underline; }
+    
+    .loading-msg { padding: 20px; text-align: center; color: var(--accent); }
+    .helper-text { font-size: 0.7rem; color: #64748b; margin-top: 2px;}
   </style>
 </head>
 <body>
 
-  <header>
+  <div class="header-container">
     <h1 id="pageTitle">Loading Tickets...</h1>
-  </header>
+    
+    <div class="controls-panel">
+      <!-- Date Filters -->
+      <div class="filter-group">
+        <label>Start Date</label>
+        <input type="date" id="dateStart" onchange="applyLocalFilters()">
+      </div>
+      <div class="filter-group">
+        <label>End Date</label>
+        <input type="date" id="dateEnd" onchange="applyLocalFilters()">
+      </div>
 
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>Ticket #</th>
-          <th>Subject</th>
-          <th>Priority</th>
-          <th>Department</th>
-          <th>Assignee</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="ticketTableBody">
-        <tr><td colspan="7" style="text-align:center;">Fetching data from Zoho...</td></tr>
-      </tbody>
-    </table>
+      <!-- Dropdown Filters (Multi-select) -->
+      <div class="filter-group">
+        <label>Assignee <span class="helper-text">(Ctrl/Cmd+Click)</span></label>
+        <select id="assigneeFilter" multiple onchange="applyLocalFilters()"></select>
+      </div>
+      <div class="filter-group">
+        <label>Priority</label>
+        <select id="priorityFilter" multiple onchange="applyLocalFilters()"></select>
+      </div>
+      <div class="filter-group">
+        <label>Status</label>
+        <select id="statusFilter" multiple onchange="applyLocalFilters()"></select>
+      </div>
+
+      <!-- Export Button -->
+      <button class="btn-export" onclick="exportToCSV()">
+        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+        </svg>
+        Export CSV
+      </button>
+    </div>
   </div>
 
-  <script>
-    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec';
+  <table>
+    <thead>
+      <tr>
+        <th>Ticket #</th>
+        <th>Subject</th>
+        <th>Priority</th>
+        <th>Department</th>
+        <th>Assignee</th>
+        <th>Status</th>
+        <th>Created Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="ticketTableBody">
+      <tr><td colspan="8" class="loading-msg">Fetching data from Zoho...</td></tr>
+    </tbody>
+  </table>
 
-    const ZOHO_PORTAL_NAME = 'mindmatrixinc'; 
+  <script>
+    // 🔴 IMPORTANT: PASTE YOUR GOOGLE WEB APP URL HERE
+    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec';
 
     const urlParams = new URLSearchParams(window.location.search);
     const filterType = urlParams.get('filter'); 
@@ -121,11 +196,11 @@
       ? 'All Open Tickets' 
       : `${filterValue} Tickets`;
 
-    async function loadTable() {
-      const tableBody = document.getElementById('ticketTableBody');
-      
+    let globalTickets = []; // Holds the raw fetched data for this specific page
+    let currentFilteredTickets = []; // Holds data after local UI filters are applied
+
+    async function init() {
       try {
-        // ADDED redirect: 'follow'
         const response = await fetch(PROXY_URL, {
           method: 'GET',
           redirect: 'follow'
@@ -134,51 +209,168 @@
         const result = await response.json();
         if (!result.data) throw new Error(result.error);
         
-        const allTickets = result.data;
+        let allTickets = result.data;
         
-        let filteredTickets = allTickets;
+        // 1. Apply URL-based routing filters first (from Dashboard click)
         if (filterType === 'priority') {
-          filteredTickets = allTickets.filter(t => t.priority === filterValue);
+          globalTickets = allTickets.filter(t => t.priority === filterValue);
         } else if (filterType === 'department') {
-          filteredTickets = allTickets.filter(t => (t.department ? t.department.name : 'General') === filterValue);
+          globalTickets = allTickets.filter(t => (t.department ? t.department.name : 'General') === filterValue);
+        } else {
+          globalTickets = allTickets;
         }
 
-        tableBody.innerHTML = '';
+        currentFilteredTickets = [...globalTickets];
 
-        if(filteredTickets.length === 0) {
-           tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No tickets found.</td></tr>`;
-           return;
-        }
+        // 2. Populate Dropdowns dynamically based on available tickets
+        populateFilterDropdowns();
 
-        filteredTickets.forEach(ticket => {
-          const deptName = ticket.department ? ticket.department.name : 'General';
-          const priority = ticket.priority || '-';
-          
-          const assigneeName = ticket.assignee 
-            ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim()
-            : 'Unassigned';
-
-          const deskDirectUrl = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
-
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>#${ticket.ticketNumber}</td>
-            <td><strong>${ticket.subject}</strong></td>
-            <td>${priority !== '-' ? `<span class="priority-badge">${priority}</span>` : priority}</td>
-            <td><span class="badge">${deptName}</span></td>
-            <td>${assigneeName}</td>
-            <td>${ticket.status}</td>
-            <td><a href="${deskDirectUrl}" target="_blank" class="ticket-link">Open Ticket ↗</a></td>
-          `;
-          tableBody.appendChild(row);
-        });
+        // 3. Render Table
+        renderTable(currentFilteredTickets);
 
       } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="7" style="color: #ef4444; text-align:center;">Error: ${err.message}</td></tr>`;
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="color: #ef4444; text-align:center;">Error: ${err.message}</td></tr>`;
       }
     }
 
-    loadTable();
+    // Populate the HTML selects with unique values from the data
+    function populateFilterDropdowns() {
+      const assignees = new Set();
+      const priorities = new Set();
+      const statuses = new Set();
+
+      globalTickets.forEach(t => {
+        assignees.add(t.assignee ? `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim() : 'Unassigned');
+        priorities.add(t.priority || '-');
+        statuses.add(t.status || '-');
+      });
+
+      const fillSelect = (id, set) => {
+        const select = document.getElementById(id);
+        Array.from(set).sort().forEach(val => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val;
+          select.appendChild(opt);
+        });
+      };
+
+      fillSelect('assigneeFilter', assignees);
+      fillSelect('priorityFilter', priorities);
+      fillSelect('statusFilter', statuses);
+    }
+
+    // Apply multiple selections and dates locally
+    function applyLocalFilters() {
+      const getSelected = (id) => Array.from(document.getElementById(id).selectedOptions).map(o => o.value);
+      
+      const selAssignees = getSelected('assigneeFilter');
+      const selPriorities = getSelected('priorityFilter');
+      const selStatuses = getSelected('statusFilter');
+      const dateStart = document.getElementById('dateStart').value;
+      const dateEnd = document.getElementById('dateEnd').value;
+
+      currentFilteredTickets = globalTickets.filter(ticket => {
+        const assigneeName = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : 'Unassigned';
+        const priority = ticket.priority || '-';
+        const status = ticket.status || '-';
+        const createdDate = new Date(ticket.createdTime);
+
+        // Check Multi-Selects (If nothing selected, allow all)
+        const passAssignee = selAssignees.length === 0 || selAssignees.includes(assigneeName);
+        const passPriority = selPriorities.length === 0 || selPriorities.includes(priority);
+        const passStatus = selStatuses.length === 0 || selStatuses.includes(status);
+
+        // Check Dates
+        let passDate = true;
+        if (dateStart) passDate = passDate && (createdDate >= new Date(dateStart));
+        if (dateEnd) {
+          const endD = new Date(dateEnd);
+          endD.setHours(23, 59, 59); // include entire end day
+          passDate = passDate && (createdDate <= endD);
+        }
+
+        return passAssignee && passPriority && passStatus && passDate;
+      });
+
+      renderTable(currentFilteredTickets);
+    }
+
+    // Build the table rows
+    function renderTable(ticketsToRender) {
+      const tableBody = document.getElementById('ticketTableBody');
+      tableBody.innerHTML = '';
+
+      if(ticketsToRender.length === 0) {
+         tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;">No tickets match your filters.</td></tr>`;
+         return;
+      }
+
+      ticketsToRender.forEach(ticket => {
+        const deptName = ticket.department ? ticket.department.name : 'General';
+        const priority = ticket.priority || '-';
+        
+        const assigneeName = ticket.assignee 
+          ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim()
+          : 'Unassigned';
+        
+        const createdDate = ticket.createdTime 
+          ? new Date(ticket.createdTime).toLocaleDateString() 
+          : '-';
+
+        const deskDirectUrl = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
+
+        const priorityHtml = (priority !== '-') 
+          ? `<span class="priority-badge" style="background-color: ${priority === 'Urgent' || priority === 'Critical' ? '#ef4444' : '#f59e0b'};">${priority}</span>` 
+          : priority;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>#${ticket.ticketNumber}</td>
+          <td><strong>${ticket.subject}</strong></td>
+          <td>${priorityHtml}</td>
+          <td><span class="dept-badge">${deptName}</span></td>
+          <td>${assigneeName}</td>
+          <td>${ticket.status}</td>
+          <td>${createdDate}</td>
+          <td><a href="${deskDirectUrl}" target="_blank" class="ticket-link">Open Ticket ↗</a></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Generate CSV and trigger download
+    function exportToCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,";
+      // CSV Headers
+      csvContent += "Ticket #,Subject,Priority,Department,Assignee,Status,Created Date,Ticket Link\n";
+
+      currentFilteredTickets.forEach(ticket => {
+        const tNum = ticket.ticketNumber || "";
+        // Wrap subject in quotes to prevent commas in subject from breaking columns
+        const subj = `"${(ticket.subject || "").replace(/"/g, '""')}"`;
+        const prio = ticket.priority || "-";
+        const dept = ticket.department ? ticket.department.name : "General";
+        const assignee = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : "Unassigned";
+        const status = ticket.status || "";
+        const cDate = ticket.createdTime ? new Date(ticket.createdTime).toLocaleDateString() : "";
+        const link = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
+
+        csvContent += `${tNum},${subj},${prio},${dept},${assignee},${status},${cDate},${link}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Zoho_Tickets_Export_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`);
+      document.body.appendChild(link);
+      
+      link.click(); // trigger download
+      document.body.removeChild(link);
+    }
+
+    // Boot up
+    init();
   </script>
 </body>
 </html>
