@@ -276,22 +276,68 @@
       errEl.style.display = 'block';
     }
 
-    // OTP Mock Functions (Requires Backend to truly work)
-    function requestOTP() {
-      const email = document.getElementById('emailInput').value;
+// --- REAL OTP FUNCTIONS ---
+    let pendingEmail = "";
+
+    async function requestOTP() {
+      const email = document.getElementById('emailInput').value.trim();
+      const btn = document.querySelector('button[onclick="requestOTP()"]');
+      
       if (!email.endsWith('@mindmatrix.net')) {
         showError('Access restricted to @mindmatrix.net emails.');
         return;
       }
+      
       document.getElementById('loginError').style.display = 'none';
-      document.getElementById('otpStep2').style.display = 'block';
-      // In reality, this is where you'd call a backend script to email the code
-      alert("Note: This is a frontend simulation. You need a backend to actually send emails!");
+      btn.textContent = "Sending...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(PROXY_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          body: JSON.stringify({ action: 'sendOtp', email: email })
+        });
+        
+        const result = await response.json();
+        if (result.error) throw new Error(result.error);
+        
+        pendingEmail = email;
+        document.getElementById('otpStep2').style.display = 'block';
+        btn.textContent = "OTP Sent!";
+      } catch (err) {
+        showError("Failed to send OTP: " + err.message);
+        btn.textContent = "Send OTP";
+        btn.disabled = false;
+      }
     }
 
-    function verifyOTP() {
-      // Stub for OTP verification
-      showDashboard();
+    async function verifyOTP() {
+      const otp = document.getElementById('otpInput').value.trim();
+      const btn = document.querySelector('button[onclick="verifyOTP()"]');
+      
+      if (!otp) return;
+      
+      btn.textContent = "Verifying...";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(PROXY_URL, {
+          method: 'POST',
+          redirect: 'follow',
+          body: JSON.stringify({ action: 'verifyOtp', email: pendingEmail, otp: otp })
+        });
+        
+        const result = await response.json();
+        if (result.error) throw new Error(result.error);
+        
+        // Success!
+        showDashboard();
+      } catch (err) {
+        showError("Invalid or expired OTP.");
+        btn.textContent = "Login";
+        btn.disabled = false;
+      }
     }
 
     // Google SSO Callback
