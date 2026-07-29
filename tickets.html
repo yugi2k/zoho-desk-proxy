@@ -4,49 +4,103 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tickets Dashboard</title>
+  
+  <link rel="icon" href="https://www.mindmatrix.net/favicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
+      /* Dark Mode (Default) */
+      --bg-gradient: radial-gradient(circle at 15% 50%, #1e1b4b, #0f172a, #020617);
+      --glass-bg: rgba(30, 41, 59, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #38bdf8;
-      --border: #334155;
+      --accent-hover: #0284c7;
+      --input-bg: rgba(15, 23, 42, 0.6);
       --priority-high: #ef4444;
+      --row-hover: rgba(255, 255, 255, 0.05);
+      --th-bg: rgba(15, 23, 42, 0.4);
     }
+    
+    body.light-mode {
+      /* Light Mode */
+      --bg-gradient: radial-gradient(circle at 15% 50%, #e0e7ff, #f1f5f9, #f8fafc);
+      --glass-bg: rgba(255, 255, 255, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.6);
+      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --accent: #0ea5e9;
+      --accent-hover: #0284c7;
+      --input-bg: rgba(255, 255, 255, 0.8);
+      --row-hover: rgba(0, 0, 0, 0.02);
+      --th-bg: rgba(255, 255, 255, 0.4);
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
       color: var(--text-main);
       margin: 0;
       padding: 2rem;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
+
+    /* --- Animations --- */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; }
+
+    /* --- Glassmorphism Utilities --- */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      border-radius: 16px;
+    }
+
     .header-container {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       flex-wrap: wrap;
       gap: 20px;
     }
-    h1 { margin: 0; }
     
+    h1 { 
+      margin: 0; 
+      font-size: 1.8rem; 
+      font-weight: 700; 
+      letter-spacing: -0.03em; 
+      display: flex; 
+      align-items: center; 
+      gap: 12px;
+    }
+
     /* Modern Control Panel Styles */
     .controls-panel {
       display: flex;
       gap: 15px;
       align-items: flex-end;
       flex-wrap: wrap;
-      background-color: var(--card-bg);
-      padding: 15px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 16px 24px;
     }
     .filter-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       position: relative;
     }
     .filter-group label {
@@ -57,145 +111,169 @@
       color: var(--text-muted);
     }
     .filter-group input[type="date"] {
-      background-color: var(--bg-color);
+      background-color: var(--input-bg);
       color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      padding: 8px 14px;
+      border-radius: 8px;
       font-size: 0.85rem;
-      height: 38px;
+      height: 40px;
       box-sizing: border-box;
       outline: none;
+      font-family: inherit;
+      transition: all 0.3s;
     }
     .filter-group input[type="date"]:focus {
       border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
     }
 
     /* Custom Checkbox Dropdown */
-    .custom-select {
-      position: relative;
-      width: 180px;
-    }
+    .custom-select { position: relative; width: 180px; }
     .select-btn {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: var(--bg-color);
+      background-color: var(--input-bg);
       color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      padding: 8px 14px;
+      border-radius: 8px;
       font-size: 0.85rem;
       cursor: pointer;
-      height: 38px;
+      height: 40px;
       box-sizing: border-box;
       user-select: none;
+      transition: all 0.3s;
     }
-    .select-btn:hover { border-color: #475569; }
+    .select-btn:hover { border-color: var(--accent); }
     .select-dropdown {
       position: absolute;
       top: 100%;
       left: 0;
       width: 100%;
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-top: 4px;
-      max-height: 200px;
+      background-color: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      margin-top: 6px;
+      max-height: 220px;
       overflow-y: auto;
       z-index: 100;
       display: none;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
     .select-dropdown.active { display: block; }
     .select-dropdown label {
       display: flex;
       align-items: center;
-      padding: 8px 12px;
+      padding: 10px 14px;
       font-size: 0.85rem;
       color: var(--text-main);
       cursor: pointer;
       text-transform: none;
       letter-spacing: normal;
-      font-weight: normal;
-      transition: background 0.1s;
+      font-weight: 500;
+      transition: background 0.2s;
     }
-    .select-dropdown label:hover { background-color: #334155; }
-    .select-dropdown input[type="checkbox"] { margin-right: 8px; cursor: pointer; }
+    .select-dropdown label:hover { background-color: var(--row-hover); }
+    .select-dropdown input[type="checkbox"] { margin-right: 10px; cursor: pointer; accent-color: var(--accent); }
     
     /* Custom Scrollbar */
     .select-dropdown::-webkit-scrollbar { width: 6px; }
-    .select-dropdown::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 6px; }
-    .select-dropdown::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; }
+    .select-dropdown::-webkit-scrollbar-track { background: transparent; }
+    .select-dropdown::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 6px; }
     
     /* Buttons */
-    .btn-group {
-      display: flex;
-      gap: 10px;
-    }
+    .btn-group { display: flex; gap: 12px; }
     .btn-action {
       color: white;
       border: none;
-      padding: 0 16px;
-      border-radius: 6px;
+      padding: 0 18px;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
-      height: 38px;
-      transition: background 0.2s, transform 0.1s;
+      height: 40px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .btn-action:active { transform: scale(0.98); }
-    .btn-export { background-color: #10b981; }
-    .btn-export:hover { background-color: #059669; }
-    .btn-clear { background-color: #64748b; }
+    .btn-action:hover { transform: translateY(-2px); }
+    .btn-action:active { transform: translateY(0); }
+    
+    .btn-export { background-color: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    .btn-export:hover { background-color: #059669; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); }
+    .btn-clear { background-color: var(--text-muted); }
     .btn-clear:hover { background-color: #475569; }
 
     /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 16px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
-      background-color: var(--card-bg);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      text-align: left;
     }
     th, td {
-      padding: 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--glass-border);
       font-size: 0.9rem;
     }
-    th { background-color: #0f172a; color: var(--text-muted); font-weight: 600; }
+    th { 
+      background-color: var(--th-bg); 
+      color: var(--text-muted); 
+      font-weight: 600; 
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.8rem;
+    }
+    tr { transition: background 0.2s ease; }
+    tr:hover { background-color: var(--row-hover); }
+    
     .priority-badge {
-      background-color: var(--priority-high);
       color: white;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
       font-size: 0.75rem;
-      font-weight: bold;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     .dept-badge {
-      background-color: #334155;
-      padding: 4px 8px;
-      border-radius: 4px;
+      background-color: var(--input-bg);
+      padding: 4px 10px;
+      border-radius: 6px;
       font-size: 0.75rem;
-      border: 1px solid #475569;
+      border: 1px solid var(--glass-border);
     }
-    .ticket-link { color: var(--accent); text-decoration: none; font-weight: 600; }
-    .ticket-link:hover { text-decoration: underline; }
-    .loading-msg { padding: 30px; text-align: center; color: var(--accent); font-size: 1.1rem;}
+    .ticket-link { 
+      color: var(--accent); 
+      text-decoration: none; 
+      font-weight: 600; 
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .ticket-link:hover { color: var(--accent-hover); text-decoration: underline; }
+    .loading-msg { padding: 40px; text-align: center; color: var(--accent); font-size: 1.1rem; font-weight: 500;}
   </style>
 </head>
 <body>
 
-  <div class="header-container">
-    <h1 id="pageTitle">Loading Tickets...</h1>
+  <div class="header-container animate-in">
+    <h1 id="pageTitle">
+      <img id="mainLogo" src="https://www.mindmatrix.net/images/white-logo.svg" alt="Logo" style="height: 30px;">
+      <span>Loading Tickets...</span>
+    </h1>
     
-    <div class="controls-panel">
+    <div class="controls-panel glass-panel">
       <div class="filter-group">
         <label>Start Date</label>
         <input type="date" id="dateStart" onchange="applyLocalFilters()">
@@ -254,41 +332,56 @@
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Ticket #</th>
-        <th>Subject</th>
-        <th>Priority</th>
-        <th>Department</th>
-        <th>Assignee</th>
-        <th>Status</th>
-        <th>Created Date</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="ticketTableBody">
-      <tr><td colspan="8" class="loading-msg">Fetching data from Zoho...</td></tr>
-    </tbody>
-  </table>
+  <div class="table-container glass-panel animate-in delay-1">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Subject</th>
+          <th>Priority</th>
+          <th>Department</th>
+          <th>Assignee</th>
+          <th>Status</th>
+          <th>Created Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="ticketTableBody">
+        <tr>
+          <td colspan="8" class="loading-msg">
+            <svg style="animation: spin 1s linear infinite; margin-right: 10px; vertical-align: middle;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-linecap="round"></circle>
+            </svg>
+            Syncing data from Zoho...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
 
   <script>
     // 🔴 IMPORTANT: PASTE YOUR GOOGLE WEB APP URL HERE
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec'; 
 
+    // Auto-apply theme from Dashboard
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-mode');
+      document.getElementById('mainLogo').src = 'https://www.mindmatrix.net/images/logo.svg';
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const filterType = urlParams.get('filter'); 
     const filterValue = urlParams.get('value');
 
-    // Initial fallback title
-    document.getElementById('pageTitle').textContent = filterType === 'all' 
-      ? 'All Open Tickets' 
-      : `${filterValue} Tickets`;
+    const titleSpan = document.querySelector('#pageTitle span');
+    titleSpan.textContent = filterType === 'all' ? 'All Open Tickets' : `${filterValue} Tickets`;
 
     let globalTickets = []; 
     let currentFilteredTickets = []; 
 
-    // Close dropdowns when clicking outside
     document.addEventListener('click', function(event) {
       if (!event.target.closest('.custom-select')) {
         document.querySelectorAll('.select-dropdown').forEach(el => el.classList.remove('active'));
@@ -304,29 +397,20 @@
 
     async function init() {
       try {
-        const response = await fetch(PROXY_URL, {
-          method: 'GET',
-          redirect: 'follow'
-        });
-        
+        const response = await fetch(PROXY_URL, { method: 'GET', redirect: 'follow' });
         const result = await response.json();
         if (!result.data) throw new Error(result.error);
         
         let allTickets = result.data;
         
-        // 1. APPLY URL ROUTING (Priority, Department, or Timeframe)
         if (filterType === 'priority') {
           globalTickets = allTickets.filter(t => t.priority === filterValue);
         } else if (filterType === 'department') {
           globalTickets = allTickets.filter(t => (t.department ? t.department.name : 'General') === filterValue);
         } else if (filterType === 'timeframe') {
-          
-          const today = new Date();
-          today.setHours(0,0,0,0);
-          
+          const today = new Date(); today.setHours(0,0,0,0);
           globalTickets = allTickets.filter(t => {
             const tDate = new Date(t.createdTime);
-            
             if (filterValue === 'today') return tDate >= today;
             if (filterValue === 'yesterday') {
               const yest = new Date(today); yest.setDate(yest.getDate() - 1);
@@ -361,14 +445,12 @@
             return true;
           });
 
-          // Pretty-print the timeframe title dynamically
           const titles = {
             today: "Today's", yesterday: "Yesterday's", last7: "Last 7 Days", 
             currentWeek: "This Week's", lastWeek: "Last Week's", 
             last30: "Last 30 Days", currentMonth: "This Month's", lastMonth: "Last Month's"
           };
-          document.getElementById('pageTitle').textContent = `${titles[filterValue] || filterValue} Tickets`;
-          
+          titleSpan.textContent = `${titles[filterValue] || filterValue} Tickets`;
         } else {
           globalTickets = allTickets;
         }
@@ -378,7 +460,7 @@
         renderTable(currentFilteredTickets);
 
       } catch (err) {
-        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="color: #ef4444; text-align:center;">Error: ${err.message}</td></tr>`;
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="color: #ef4444; text-align:center; padding: 40px;">Error: ${err.message}</td></tr>`;
       }
     }
 
@@ -415,11 +497,7 @@
 
     function updateLabel(labelId, selectedCount, defaultText) {
       const el = document.getElementById(labelId);
-      if (selectedCount === 0) {
-        el.textContent = defaultText;
-      } else {
-        el.textContent = `${selectedCount} Selected`;
-      }
+      el.textContent = selectedCount === 0 ? defaultText : `${selectedCount} Selected`;
     }
 
     function applyLocalFilters() {
@@ -461,11 +539,7 @@
     function clearFilters() {
       document.getElementById('dateStart').value = '';
       document.getElementById('dateEnd').value = '';
-      
-      document.querySelectorAll('.select-dropdown input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-      });
-      
+      document.querySelectorAll('.select-dropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
       applyLocalFilters();
     }
 
@@ -474,11 +548,11 @@
       tableBody.innerHTML = '';
 
       if(ticketsToRender.length === 0) {
-         tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--text-muted);">No tickets match your current filters.</td></tr>`;
+         tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 60px; color: var(--text-muted);">No tickets match your current filters.</td></tr>`;
          return;
       }
 
-      ticketsToRender.forEach(ticket => {
+      ticketsToRender.forEach((ticket, index) => {
         const deptName = ticket.department ? ticket.department.name : 'General';
         const priority = ticket.priority || '-';
         const assigneeName = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : 'Unassigned';
@@ -486,12 +560,17 @@
         const deskDirectUrl = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
 
         const priorityHtml = (priority !== '-') 
-          ? `<span class="priority-badge" style="background-color: ${priority === 'Urgent' || priority === 'Critical' ? '#ef4444' : '#f59e0b'};">${priority}</span>` 
+          ? `<span class="priority-badge" style="background-color: ${priority === 'Urgent' || priority === 'Critical' ? 'var(--priority-high)' : '#f59e0b'};">${priority}</span>` 
           : priority;
 
         const row = document.createElement('tr');
+        // Stagger animation for table rows
+        row.className = 'animate-in';
+        row.style.animationDelay = `${0.1 + (index * 0.02)}s`;
+        row.style.opacity = '0';
+        
         row.innerHTML = `
-          <td>#${ticket.ticketNumber}</td>
+          <td><strong>#${ticket.ticketNumber}</strong></td>
           <td><strong>${ticket.subject}</strong></td>
           <td>${priorityHtml}</td>
           <td><span class="dept-badge">${deptName}</span></td>
@@ -530,12 +609,10 @@
       document.body.appendChild(link);
       
       link.click();
-      
       document.body.removeChild(link);
       URL.revokeObjectURL(url); 
     }
 
-    // FIRE EVERYTHING UP!
     init();
   </script>
 </body>
