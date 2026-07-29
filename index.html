@@ -5,188 +5,280 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mindmatrix Desk Portal</title>
   
-  <!-- 1. FAVICON -->
   <link rel="icon" href="https://www.mindmatrix.net/favicon.ico" type="image/x-icon">
+  <!-- 1. Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Google Identity Services for SSO -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
     :root {
-      /* Dark Mode (Default) */
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
+      /* Dark Mode (Default) - Deep Mesh Gradient */
+      --bg-gradient: radial-gradient(circle at 15% 50%, #1e1b4b, #0f172a, #020617);
+      --glass-bg: rgba(30, 41, 59, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #38bdf8;
-      --border: #334155;
+      --accent-hover: #0284c7;
+      --input-bg: rgba(15, 23, 42, 0.6);
+      --priority-high: #ef4444;
     }
     
-    /* 2. LIGHT MODE VARIABLES */
     body.light-mode {
-      --bg-color: #f1f5f9;
-      --card-bg: #ffffff;
+      /* Light Mode - Soft Mesh Gradient */
+      --bg-gradient: radial-gradient(circle at 15% 50%, #e0e7ff, #f1f5f9, #f8fafc);
+      --glass-bg: rgba(255, 255, 255, 0.6);
+      --glass-border: rgba(255, 255, 255, 0.6);
+      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
       --text-main: #0f172a;
       --text-muted: #475569;
-      --border: #cbd5e1;
+      --accent: #0ea5e9;
+      --accent-hover: #0284c7;
+      --input-bg: rgba(255, 255, 255, 0.8);
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
       color: var(--text-main);
       margin: 0;
       padding: 2rem;
-      transition: background-color 0.3s, color 0.3s;
+      transition: background 0.5s ease, color 0.5s ease;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
 
-    /* Top Navigation */
+    /* --- Animations --- */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in {
+      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .delay-2 { animation-delay: 0.2s; opacity: 0; }
+    .delay-3 { animation-delay: 0.3s; opacity: 0; }
+
+    /* --- Glassmorphism Utilities --- */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      border-radius: 16px;
+    }
+
+    /* --- Top Navigation --- */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 30px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 20px;
+      margin-bottom: 40px;
+      padding: 15px 25px;
     }
     .header-left {
       display: flex;
       align-items: center;
       gap: 15px;
     }
-    /* 3. LOGO */
-    .brand-logo {
-      height: 40px;
-      transition: filter 0.3s;
-    }
+    .brand-logo { height: 35px; transition: filter 0.3s; }
+    .header h1 { margin: 0; font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; }
 
-    /* Theme Toggle Button */
     .theme-toggle {
-      background: none;
-      border: 1px solid var(--border);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
       color: var(--text-main);
-      padding: 8px 16px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      border-radius: 50px;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: 500;
+      font-family: inherit;
       display: flex;
       align-items: center;
       gap: 8px;
+      transition: all 0.3s ease;
     }
-    .theme-toggle:hover { background-color: var(--card-bg); }
+    .theme-toggle:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
 
-    /* Login Screen Styles */
+    /* --- Login Screen --- */
     #loginScreen {
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 70vh;
+      min-height: 65vh;
     }
     .login-card {
-      background-color: var(--card-bg);
-      padding: 40px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      padding: 50px 40px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       text-align: center;
     }
-    .login-card h2 { margin-top: 0; margin-bottom: 5px; }
-    .login-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; }
+    .login-card h2 { margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.8rem; letter-spacing: -0.03em;}
+    .login-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px; line-height: 1.5;}
     
     .otp-group { margin-bottom: 20px; text-align: left; }
-    .otp-group label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: var(--text-muted); font-weight: bold;}
+    .otp-group label { 
+      display: block; font-size: 0.8rem; margin-bottom: 8px; 
+      color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    }
     .otp-group input {
       width: 100%;
-      padding: 10px;
-      background-color: var(--bg-color);
+      padding: 14px 16px;
+      background-color: var(--input-bg);
       color: var(--text-main);
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
       box-sizing: border-box;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+    }
+    .otp-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
     }
     .btn-login {
       width: 100%;
       background-color: var(--accent);
-      color: #0f172a;
+      color: #fff;
       border: none;
-      padding: 10px;
-      border-radius: 6px;
-      font-weight: bold;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
     }
-    .btn-login:hover { opacity: 0.9; }
+    .btn-login:hover { 
+      background-color: var(--accent-hover); 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(56, 189, 248, 0.4);
+    }
+    .btn-login:active { transform: translateY(0); }
     
     .divider {
       display: flex;
       align-items: center;
       text-align: center;
-      margin: 20px 0;
+      margin: 30px 0;
       color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
     }
     .divider::before, .divider::after {
       content: '';
       flex: 1;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--glass-border);
     }
-    .divider:not(:empty)::before { margin-right: .25em; }
-    .divider:not(:empty)::after { margin-left: .25em; }
+    .divider:not(:empty)::before { margin-right: 1em; }
+    .divider:not(:empty)::after { margin-left: 1em; }
 
-    /* Dashboard Styles */
+    .g_id_signin { display: flex; justify-content: center; }
+
+    /* --- Dashboard Styles --- */
     #dashboardScreen { display: none; }
+    
     .section-title {
-      font-size: 1.2rem;
+      font-size: 1rem;
       color: var(--text-muted);
-      margin: 30px 0 15px 0;
+      margin: 40px 0 20px 0;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--glass-border);
+    }
+
     .dashboard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 24px;
     }
+    
     .metric-card {
-      background-color: var(--card-bg);
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
+      padding: 24px;
       text-align: center;
       text-decoration: none;
       color: inherit;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .metric-card:hover { transform: translateY(-5px); border-color: var(--accent); }
-    .metric-card h3 { margin: 0; font-size: 1rem; color: var(--text-muted); }
-    .metric-card p { margin: 10px 0 0 0; font-size: 2.5rem; font-weight: bold; color: var(--accent); }
-    .total-card { grid-column: 1 / -1; border-color: var(--accent); }
-    .total-card h3 { color: var(--text-main); font-size: 1.2rem; }
+    .metric-card:hover { 
+      transform: translateY(-8px) scale(1.02); 
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    }
+    
+    .metric-card h3 { 
+      margin: 0; 
+      font-size: 0.95rem; 
+      font-weight: 500;
+      color: var(--text-muted); 
+    }
+    .metric-card p { 
+      margin: 15px 0 0 0; 
+      font-size: 3rem; 
+      font-weight: 700; 
+      color: var(--text-main); 
+      letter-spacing: -0.03em;
+    }
+    
+    .total-card { 
+      grid-column: 1 / -1; 
+      border-color: var(--accent); 
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, transparent 100%);
+    }
+    .total-card p { color: var(--accent); }
+
+    .priority-badge {
+      display: inline-block;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
 
-  <div class="header">
+  <div class="header glass-panel animate-in">
     <div class="header-left">
-      <!-- Dynamic Logo -->
       <img id="mainLogo" class="brand-logo" src="https://www.mindmatrix.net/images/white-logo.svg" alt="Mindmatrix">
-      <h1 style="margin: 0; font-size: 1.5rem;">Support Portal</h1>
+      <h1>Support Portal</h1>
     </div>
-    
-    <!-- Light/Dark Mode Toggle -->
     <button class="theme-toggle" onclick="toggleTheme()">
       <span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span>
     </button>
   </div>
 
-  <!-- ============================== -->
-  <!-- 4. LOGIN SCREEN -->
-  <!-- ============================== -->
+  <!-- LOGIN SCREEN -->
   <div id="loginScreen">
-    <div class="login-card">
+    <div class="login-card glass-panel animate-in delay-1">
       <h2>Staff Login</h2>
       <p>Authorized @mindmatrix.net accounts only.</p>
       
@@ -199,15 +291,15 @@
 
       <div class="otp-group" id="otpStep2" style="display: none;">
         <label>One-Time Password</label>
-        <input type="text" id="otpInput" placeholder="Enter OTP">
-        <button class="btn-login" onclick="verifyOTP()">Login</button>
+        <input type="text" id="otpInput" placeholder="Enter 6-digit code">
+        <button class="btn-login" onclick="verifyOTP()">Login securely</button>
       </div>
 
       <div class="divider">OR</div>
 
       <!-- Google SSO Button Container -->
       <div id="g_id_onload"
-         data-client_id="801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com"
+         data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com"
          data-context="signin"
          data-ux_mode="popup"
          data-callback="handleGoogleLogin"
@@ -222,24 +314,30 @@
          data-logo_alignment="left">
       </div>
       
-      <p id="loginError" style="color: #ef4444; margin-top: 15px; display: none;"></p>
+      <p id="loginError" style="color: #ef4444; margin-top: 20px; font-size: 0.9rem; display: none; font-weight: 500;"></p>
     </div>
   </div>
 
-  <!-- ============================== -->
   <!-- DASHBOARD SCREEN -->
-  <!-- ============================== -->
   <div id="dashboardScreen">
     <div id="dashboardContainer">
-      <p style="color: var(--accent);">Fetching live data from Zoho...</p>
+      <div style="text-align: center; padding: 50px;" class="animate-in delay-1">
+        <p style="color: var(--accent); font-size: 1.2rem; font-weight: 500;">
+          <svg style="animation: spin 1s linear infinite; margin-right: 10px; vertical-align: middle;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-linecap="round"></circle>
+          </svg>
+          Syncing secure data from Zoho...
+        </p>
+      </div>
     </div>
   </div>
+
+  <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
 
   <script>
     // 🔴 IMPORTANT: PASTE YOUR GOOGLE WEB APP URL HERE
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec';
 
-    // --- THEME MANAGEMENT ---
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme === 'light') toggleTheme(true);
@@ -247,7 +345,6 @@
 
     function toggleTheme(forceLight = false) {
       const isLight = forceLight || !document.body.classList.contains('light-mode');
-      
       if (isLight) {
         document.body.classList.add('light-mode');
         document.getElementById('mainLogo').src = 'https://www.mindmatrix.net/images/logo.svg';
@@ -263,11 +360,10 @@
       }
     }
 
-    // --- LOGIN MANAGEMENT ---
     function showDashboard() {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboardScreen').style.display = 'block';
-      fetchData(); // Only fetch data after successful login
+      fetchData(); 
     }
 
     function showError(msg) {
@@ -276,18 +372,15 @@
       errEl.style.display = 'block';
     }
 
-// --- REAL OTP FUNCTIONS ---
     let pendingEmail = "";
 
     async function requestOTP() {
       const email = document.getElementById('emailInput').value.trim();
       const btn = document.querySelector('button[onclick="requestOTP()"]');
-      
       if (!email.endsWith('@mindmatrix.net')) {
         showError('Access restricted to @mindmatrix.net emails.');
         return;
       }
-      
       document.getElementById('loginError').style.display = 'none';
       btn.textContent = "Sending...";
       btn.disabled = true;
@@ -298,15 +391,15 @@
           redirect: 'follow',
           body: JSON.stringify({ action: 'sendOtp', email: email })
         });
-        
         const result = await response.json();
         if (result.error) throw new Error(result.error);
         
         pendingEmail = email;
         document.getElementById('otpStep2').style.display = 'block';
+        document.getElementById('otpStep2').classList.add('animate-in');
         btn.textContent = "OTP Sent!";
       } catch (err) {
-        showError("Failed to send OTP: " + err.message);
+        showError("Failed to send OTP. Ensure backend is deployed.");
         btn.textContent = "Send OTP";
         btn.disabled = false;
       }
@@ -315,9 +408,7 @@
     async function verifyOTP() {
       const otp = document.getElementById('otpInput').value.trim();
       const btn = document.querySelector('button[onclick="verifyOTP()"]');
-      
       if (!otp) return;
-      
       btn.textContent = "Verifying...";
       btn.disabled = true;
 
@@ -327,25 +418,18 @@
           redirect: 'follow',
           body: JSON.stringify({ action: 'verifyOtp', email: pendingEmail, otp: otp })
         });
-        
         const result = await response.json();
         if (result.error) throw new Error(result.error);
-        
-        // Success!
         showDashboard();
       } catch (err) {
         showError("Invalid or expired OTP.");
-        btn.textContent = "Login";
+        btn.textContent = "Login securely";
         btn.disabled = false;
       }
     }
 
-    // Google SSO Callback
     function handleGoogleLogin(response) {
-      // Decode the JWT token Google sends back
       const responsePayload = JSON.parse(atob(response.credential.split('.')[1]));
-      
-      // Validate Domain
       if (responsePayload.email.endsWith('@mindmatrix.net')) {
         showDashboard();
       } else {
@@ -353,7 +437,6 @@
       }
     }
 
-    // --- DASHBOARD DATA FETCHING ---
     async function fetchData() {
       const container = document.getElementById('dashboardContainer');
       try {
@@ -395,46 +478,53 @@
           if (priorityCounts[priority] !== undefined) priorityCounts[priority]++;
         });
 
+        // Building HTML with new Glassmorphism classes and cascaded delays
         let html = `
-          <div class="dashboard-grid" style="margin-bottom: 20px;">
-            <a href="tickets.html?filter=all" target="_blank" class="metric-card total-card">
+          <div class="dashboard-grid animate-in delay-1" style="margin-bottom: 30px;">
+            <a href="tickets.html?filter=all" target="_blank" class="metric-card glass-panel total-card">
               <h3>Total Open Tickets (All Time)</h3>
               <p>${tickets.length}</p>
             </a>
           </div>
-          <div class="section-title">Ticket Volumes (Based on Creation Date)</div>
-          <div class="dashboard-grid">
-            <a href="tickets.html?filter=timeframe&value=today" target="_blank" class="metric-card"><h3>Today</h3><p>${timeCounts.today}</p></a>
-            <a href="tickets.html?filter=timeframe&value=yesterday" target="_blank" class="metric-card"><h3>Yesterday</h3><p>${timeCounts.yesterday}</p></a>
-            <a href="tickets.html?filter=timeframe&value=currentWeek" target="_blank" class="metric-card"><h3>This Week</h3><p>${timeCounts.currentWeek}</p></a>
-            <a href="tickets.html?filter=timeframe&value=lastWeek" target="_blank" class="metric-card"><h3>Last Week</h3><p>${timeCounts.lastWeek}</p></a>
-            <a href="tickets.html?filter=timeframe&value=last7" target="_blank" class="metric-card"><h3>Last 7 Days</h3><p>${timeCounts.last7}</p></a>
-            <a href="tickets.html?filter=timeframe&value=currentMonth" target="_blank" class="metric-card"><h3>This Month</h3><p>${timeCounts.currentMonth}</p></a>
-            <a href="tickets.html?filter=timeframe&value=lastMonth" target="_blank" class="metric-card"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
-            <a href="tickets.html?filter=timeframe&value=last30" target="_blank" class="metric-card"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
+
+          <div class="section-title animate-in delay-1">Ticket Volumes</div>
+          <div class="dashboard-grid animate-in delay-2">
+            <a href="tickets.html?filter=timeframe&value=today" target="_blank" class="metric-card glass-panel"><h3>Today</h3><p>${timeCounts.today}</p></a>
+            <a href="tickets.html?filter=timeframe&value=yesterday" target="_blank" class="metric-card glass-panel"><h3>Yesterday</h3><p>${timeCounts.yesterday}</p></a>
+            <a href="tickets.html?filter=timeframe&value=currentWeek" target="_blank" class="metric-card glass-panel"><h3>This Week</h3><p>${timeCounts.currentWeek}</p></a>
+            <a href="tickets.html?filter=timeframe&value=lastWeek" target="_blank" class="metric-card glass-panel"><h3>Last Week</h3><p>${timeCounts.lastWeek}</p></a>
+            <a href="tickets.html?filter=timeframe&value=last7" target="_blank" class="metric-card glass-panel"><h3>Last 7 Days</h3><p>${timeCounts.last7}</p></a>
+            <a href="tickets.html?filter=timeframe&value=currentMonth" target="_blank" class="metric-card glass-panel"><h3>This Month</h3><p>${timeCounts.currentMonth}</p></a>
+            <a href="tickets.html?filter=timeframe&value=lastMonth" target="_blank" class="metric-card glass-panel"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
+            <a href="tickets.html?filter=timeframe&value=last30" target="_blank" class="metric-card glass-panel"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
           </div>
-          <div class="section-title">By Priority</div>
-          <div class="dashboard-grid">
+
+          <div class="section-title animate-in delay-2">By Priority</div>
+          <div class="dashboard-grid animate-in delay-3">
         `;
         Object.entries(priorityCounts).forEach(([priority, count]) => {
           if (count > 0) {
-            const color = (priority === 'Critical' || priority === 'Urgent') ? '#ef4444' : '#f59e0b';
-            html += `<a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card"><h3 style="background-color: ${color}; color: white; display: inline-block; padding: 4px 12px; border-radius: 6px;">${priority}</h3><p>${count}</p></a>`;
+            const color = (priority === 'Critical' || priority === 'Urgent') ? 'var(--priority-high)' : '#f59e0b';
+            html += `
+              <a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" target="_blank" class="metric-card glass-panel">
+                <div><span class="priority-badge" style="background-color: ${color};">${priority}</span></div>
+                <p>${count}</p>
+              </a>`;
           }
         });
-        html += `</div><div class="section-title">By Department</div><div class="dashboard-grid">`;
+        html += `</div><div class="section-title animate-in delay-3">By Department</div><div class="dashboard-grid animate-in delay-3">`;
         Object.entries(deptCounts).forEach(([dept, count]) => {
-          html += `<a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" target="_blank" class="metric-card"><h3>${dept}</h3><p>${count}</p></a>`;
+          html += `<a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" target="_blank" class="metric-card glass-panel"><h3>${dept}</h3><p>${count}</p></a>`;
         });
         html += `</div>`;
+        
         container.innerHTML = html;
 
       } catch (err) {
-        container.innerHTML = `<p style="color: #ef4444;">Error loading dashboard: ${err.message}</p>`;
+        container.innerHTML = `<div class="glass-panel animate-in" style="padding:30px; text-align:center; color: #ef4444;">Error: ${err.message}</div>`;
       }
     }
 
-    // Run theme checker on load
     initTheme();
   </script>
 </body>
