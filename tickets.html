@@ -5,12 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tickets Dashboard</title>
   
+  <!-- Favicon -->
   <link rel="icon" href="https://www.mindmatrix.net/favicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+  <!-- SESSION CHECK: Redirect instantly if not logged in -->
+  <script>
+    if (sessionStorage.getItem('auth_session') !== 'active') {
+      window.location.href = 'index.html';
+    }
+  </script>
+
   <style>
     :root {
-      /* Dark Mode (Default) */
       --bg-gradient: radial-gradient(circle at 15% 50%, #1e1b4b, #0f172a, #020617);
       --glass-bg: rgba(30, 41, 59, 0.4);
       --glass-border: rgba(255, 255, 255, 0.08);
@@ -26,7 +33,6 @@
     }
     
     body.light-mode {
-      /* Light Mode */
       --bg-gradient: radial-gradient(circle at 15% 50%, #e0e7ff, #f1f5f9, #f8fafc);
       --glass-bg: rgba(255, 255, 255, 0.6);
       --glass-border: rgba(255, 255, 255, 0.6);
@@ -49,18 +55,14 @@
       padding: 2rem;
       min-height: 100vh;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* --- Animations --- */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .animate-in { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .delay-1 { animation-delay: 0.1s; opacity: 0; }
-    .delay-2 { animation-delay: 0.2s; opacity: 0; }
 
-    /* --- Glassmorphism Utilities --- */
     .glass-panel {
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
@@ -73,262 +75,183 @@
     .header-container {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       margin-bottom: 25px;
       flex-wrap: wrap;
       gap: 20px;
     }
     
-    h1 { 
-      margin: 0; 
-      font-size: 1.8rem; 
-      font-weight: 700; 
-      letter-spacing: -0.03em; 
-      display: flex; 
-      align-items: center; 
-      gap: 12px;
-    }
-
-    /* Modern Control Panel Styles */
-    .controls-panel {
+    .title-group {
       display: flex;
-      gap: 15px;
-      align-items: flex-end;
-      flex-wrap: wrap;
-      padding: 16px 24px;
-    }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      position: relative;
-    }
-    .filter-group label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-    }
-    .filter-group input[type="date"] {
-      background-color: var(--input-bg);
-      color: var(--text-main);
-      border: 1px solid var(--glass-border);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      height: 40px;
-      box-sizing: border-box;
-      outline: none;
-      font-family: inherit;
-      transition: all 0.3s;
-    }
-    .filter-group input[type="date"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-    }
-
-    /* Custom Checkbox Dropdown */
-    .custom-select { position: relative; width: 180px; }
-    .select-btn {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      background-color: var(--input-bg);
-      color: var(--text-main);
-      border: 1px solid var(--glass-border);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      height: 40px;
-      box-sizing: border-box;
-      user-select: none;
-      transition: all 0.3s;
+      gap: 15px;
+    }
+    
+    h1 { margin: 0; font-size: 1.6rem; font-weight: 700; }
+
+    .header-actions { display: flex; gap: 12px; }
+    
+    .icon-btn {
+      background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main);
+      padding: 10px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease; width: 40px; height: 40px;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+    .btn-back {
+      background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);
+      padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s;
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.1); transform: translateX(-4px); }
+
+    /* Controls & Z-Index Fixes */
+    .controls-panel {
+      display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; padding: 16px 24px;
+      position: relative; z-index: 50; /* Z-INDEX FIX: Forces dropdown above table */
+      margin-bottom: 20px;
+    }
+    
+    .filter-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
+    .filter-group label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+    
+    /* Modernized Date Picker */
+    .filter-group input[type="date"] {
+      background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border);
+      padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; height: 40px; box-sizing: border-box;
+      outline: none; font-family: inherit; transition: all 0.3s; cursor: pointer;
+    }
+    .filter-group input[type="date"]::-webkit-calendar-picker-indicator { 
+      filter: invert(0.6); cursor: pointer; opacity: 0.6; transition: 0.2s;
+    }
+    .filter-group input[type="date"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+    .filter-group input[type="date"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+
+    /* Dropdowns */
+    .custom-select { position: relative; width: 160px; }
+    .select-btn {
+      display: flex; justify-content: space-between; align-items: center; background-color: var(--input-bg);
+      color: var(--text-main); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 8px;
+      font-size: 0.85rem; cursor: pointer; height: 40px; box-sizing: border-box; user-select: none; transition: all 0.3s;
     }
     .select-btn:hover { border-color: var(--accent); }
     .select-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background-color: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      margin-top: 6px;
-      max-height: 220px;
-      overflow-y: auto;
-      z-index: 100;
-      display: none;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      position: absolute; top: 100%; left: 0; width: 100%; background-color: var(--glass-bg);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+      border-radius: 8px; margin-top: 6px; max-height: 250px; overflow-y: auto; z-index: 9999; /* Z-INDEX FIX */
+      display: none; box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
     }
     .select-dropdown.active { display: block; }
     .select-dropdown label {
-      display: flex;
-      align-items: center;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      color: var(--text-main);
-      cursor: pointer;
-      text-transform: none;
-      letter-spacing: normal;
-      font-weight: 500;
-      transition: background 0.2s;
+      display: flex; align-items: center; padding: 10px 14px; font-size: 0.85rem; color: var(--text-main);
+      cursor: pointer; font-weight: 500; transition: background 0.2s;
     }
     .select-dropdown label:hover { background-color: var(--row-hover); }
     .select-dropdown input[type="checkbox"] { margin-right: 10px; cursor: pointer; accent-color: var(--accent); }
-    
-    /* Custom Scrollbar */
     .select-dropdown::-webkit-scrollbar { width: 6px; }
-    .select-dropdown::-webkit-scrollbar-track { background: transparent; }
     .select-dropdown::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 6px; }
     
-    /* Buttons */
     .btn-group { display: flex; gap: 12px; }
     .btn-action {
-      color: white;
-      border: none;
-      padding: 0 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      height: 40px;
-      font-family: inherit;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      color: white; border: none; padding: 0 18px; border-radius: 8px; cursor: pointer; font-weight: 600;
+      display: flex; align-items: center; gap: 8px; height: 40px; font-family: inherit; transition: all 0.3s;
     }
     .btn-action:hover { transform: translateY(-2px); }
-    .btn-action:active { transform: translateY(0); }
-    
-    .btn-export { background-color: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-    .btn-export:hover { background-color: #059669; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); }
+    .btn-export { background-color: #10b981; }
+    .btn-export:hover { background-color: #059669; }
     .btn-clear { background-color: var(--text-muted); }
     .btn-clear:hover { background-color: #475569; }
 
-    /* Table Styles */
+    /* Table */
     .table-container {
-      overflow-x: auto;
-      border-radius: 16px;
+      overflow-x: auto; border-radius: 16px; position: relative; z-index: 1; /* Ensures it sits under dropdowns */
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
-    th, td {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--glass-border);
-      font-size: 0.9rem;
-    }
-    th { 
-      background-color: var(--th-bg); 
-      color: var(--text-muted); 
-      font-weight: 600; 
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.8rem;
-    }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 16px 20px; border-bottom: 1px solid var(--glass-border); font-size: 0.9rem; }
+    th { background-color: var(--th-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
     tr { transition: background 0.2s ease; }
     tr:hover { background-color: var(--row-hover); }
     
-    .priority-badge {
-      color: white;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .dept-badge {
-      background-color: var(--input-bg);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      border: 1px solid var(--glass-border);
-    }
-    .ticket-link { 
-      color: var(--accent); 
-      text-decoration: none; 
-      font-weight: 600; 
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      transition: color 0.2s;
-    }
-    .ticket-link:hover { color: var(--accent-hover); text-decoration: underline; }
-    .loading-msg { padding: 40px; text-align: center; color: var(--accent); font-size: 1.1rem; font-weight: 500;}
+    .priority-badge { color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .dept-badge { background-color: var(--input-bg); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; border: 1px solid var(--glass-border); }
+    .ticket-link { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .ticket-link:hover { text-decoration: underline; }
+    
+    footer { text-align: center; padding: 30px 0 10px 0; color: var(--text-muted); font-size: 0.8rem; margin-top: auto; }
   </style>
 </head>
 <body>
 
   <div class="header-container animate-in">
-    <h1 id="pageTitle">
-      <img id="mainLogo" src="https://www.mindmatrix.net/images/white-logo.svg" alt="Logo" style="height: 30px;">
-      <span>Loading Tickets...</span>
-    </h1>
+    <div class="title-group">
+      <a href="index.html" class="btn-back">← Back</a>
+      <h1 id="pageTitle">Loading Tickets...</h1>
+    </div>
     
-    <div class="controls-panel glass-panel">
-      <div class="filter-group">
-        <label>Start Date</label>
-        <input type="date" id="dateStart" onchange="applyLocalFilters()">
-      </div>
-      <div class="filter-group">
-        <label>End Date</label>
-        <input type="date" id="dateEnd" onchange="applyLocalFilters()">
-      </div>
+    <div class="header-actions">
+      <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+        <span id="themeIcon">☀️</span>
+      </button>
+      <button class="icon-btn" onclick="logout()" title="Logout">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+      </button>
+    </div>
+  </div>
 
-      <div class="filter-group">
-        <label>Assignee</label>
-        <div class="custom-select">
-          <div class="select-btn" onclick="toggleDropdown('assigneeDropdown')">
-            <span id="assigneeLabel">All Assignees</span> ▼
-          </div>
-          <div class="select-dropdown" id="assigneeDropdown"></div>
-        </div>
-      </div>
-      
-      <div class="filter-group">
-        <label>Priority</label>
-        <div class="custom-select">
-          <div class="select-btn" onclick="toggleDropdown('priorityDropdown')">
-            <span id="priorityLabel">All Priorities</span> ▼
-          </div>
-          <div class="select-dropdown" id="priorityDropdown"></div>
-        </div>
-      </div>
+  <div class="controls-panel glass-panel animate-in">
+    <div class="filter-group">
+      <label>Start Date</label>
+      <input type="date" id="dateStart" onchange="applyLocalFilters()">
+    </div>
+    <div class="filter-group">
+      <label>End Date</label>
+      <input type="date" id="dateEnd" onchange="applyLocalFilters()">
+    </div>
 
-      <div class="filter-group">
-        <label>Status</label>
-        <div class="custom-select">
-          <div class="select-btn" onclick="toggleDropdown('statusDropdown')">
-            <span id="statusLabel">All Statuses</span> ▼
-          </div>
-          <div class="select-dropdown" id="statusDropdown"></div>
+    <!-- NEW: Client Name Filter -->
+    <div class="filter-group">
+      <label>Client Name</label>
+      <div class="custom-select">
+        <div class="select-btn" onclick="toggleDropdown('clientDropdown')">
+          <span id="clientLabel">All Clients</span> ▼
         </div>
+        <div class="select-dropdown" id="clientDropdown"></div>
       </div>
+    </div>
 
-      <div class="btn-group">
-        <button class="btn-action btn-clear" onclick="clearFilters()" title="Reset all filters">
-          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-          </svg>
-          Clear
-        </button>
-        <button class="btn-action btn-export" onclick="exportToCSV()" title="Download current view">
-          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-          </svg>
-          Export
-        </button>
+    <div class="filter-group">
+      <label>Assignee</label>
+      <div class="custom-select">
+        <div class="select-btn" onclick="toggleDropdown('assigneeDropdown')">
+          <span id="assigneeLabel">All Assignees</span> ▼
+        </div>
+        <div class="select-dropdown" id="assigneeDropdown"></div>
       </div>
+    </div>
+    
+    <div class="filter-group">
+      <label>Priority</label>
+      <div class="custom-select">
+        <div class="select-btn" onclick="toggleDropdown('priorityDropdown')">
+          <span id="priorityLabel">All Priorities</span> ▼
+        </div>
+        <div class="select-dropdown" id="priorityDropdown"></div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Status</label>
+      <div class="custom-select">
+        <div class="select-btn" onclick="toggleDropdown('statusDropdown')">
+          <span id="statusLabel">All Statuses</span> ▼
+        </div>
+        <div class="select-dropdown" id="statusDropdown"></div>
+      </div>
+    </div>
+
+    <div class="btn-group" style="margin-left: auto;">
+      <button class="btn-action btn-clear" onclick="clearFilters()" title="Reset all filters">Clear</button>
+      <button class="btn-action btn-export" onclick="exportToCSV()" title="Download current view">Export</button>
     </div>
   </div>
 
@@ -338,6 +261,7 @@
         <tr>
           <th>Ticket #</th>
           <th>Subject</th>
+          <th>Client Name</th> <!-- NEW Column -->
           <th>Priority</th>
           <th>Department</th>
           <th>Assignee</th>
@@ -347,37 +271,43 @@
         </tr>
       </thead>
       <tbody id="ticketTableBody">
-        <tr>
-          <td colspan="8" class="loading-msg">
-            <svg style="animation: spin 1s linear infinite; margin-right: 10px; vertical-align: middle;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-linecap="round"></circle>
-            </svg>
-            Syncing data from Zoho...
-          </td>
-        </tr>
+        <tr><td colspan="9" style="padding:40px;text-align:center;">Syncing data...</td></tr>
       </tbody>
     </table>
   </div>
   
-  <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+  <footer>
+    Powered by NovaForge AI | &copy; 2026 Mindmatrix | v1.2.0
+  </footer>
 
   <script>
     // 🔴 IMPORTANT: PASTE YOUR GOOGLE WEB APP URL HERE
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec'; 
 
-    // Auto-apply theme from Dashboard
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      document.body.classList.add('light-mode');
-      document.getElementById('mainLogo').src = 'https://www.mindmatrix.net/images/logo.svg';
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        document.getElementById('themeIcon').textContent = '🌙';
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-mode');
+      document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+
+    function logout() {
+      sessionStorage.removeItem('auth_session');
+      window.location.href = 'index.html';
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     const filterType = urlParams.get('filter'); 
     const filterValue = urlParams.get('value');
 
-    const titleSpan = document.querySelector('#pageTitle span');
-    titleSpan.textContent = filterType === 'all' ? 'All Open Tickets' : `${filterValue} Tickets`;
+    document.getElementById('pageTitle').textContent = filterType === 'all' ? 'All Open Tickets' : `${filterValue} Tickets`;
 
     let globalTickets = []; 
     let currentFilteredTickets = []; 
@@ -395,9 +325,19 @@
       document.getElementById(id).classList.toggle('active');
     }
 
+    // Helper to safely extract client name from Zoho payload
+    function getClientName(ticket) {
+      if (!ticket.contact) return "Unknown";
+      if (ticket.contact.account && ticket.contact.account.accountName) return ticket.contact.account.accountName;
+      const fName = ticket.contact.firstName || "";
+      const lName = ticket.contact.lastName || "";
+      const full = `${fName} ${lName}`.trim();
+      return full || "Unknown";
+    }
+
     async function init() {
       try {
-        const response = await fetch(PROXY_URL, { method: 'GET', redirect: 'follow' });
+        const response = await fetch(PROXY_URL, { method: 'GET' });
         const result = await response.json();
         if (!result.data) throw new Error(result.error);
         
@@ -444,13 +384,8 @@
             }
             return true;
           });
-
-          const titles = {
-            today: "Today's", yesterday: "Yesterday's", last7: "Last 7 Days", 
-            currentWeek: "This Week's", lastWeek: "Last Week's", 
-            last30: "Last 30 Days", currentMonth: "This Month's", lastMonth: "Last Month's"
-          };
-          titleSpan.textContent = `${titles[filterValue] || filterValue} Tickets`;
+          const titles = { today: "Today's", yesterday: "Yesterday's", last7: "Last 7 Days", currentWeek: "This Week's", lastWeek: "Last Week's", last30: "Last 30 Days", currentMonth: "This Month's", lastMonth: "Last Month's" };
+          document.getElementById('pageTitle').textContent = `${titles[filterValue] || filterValue} Tickets`;
         } else {
           globalTickets = allTickets;
         }
@@ -460,16 +395,18 @@
         renderTable(currentFilteredTickets);
 
       } catch (err) {
-        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="8" style="color: #ef4444; text-align:center; padding: 40px;">Error: ${err.message}</td></tr>`;
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="9" style="color: #ef4444; text-align:center; padding: 40px;">Error: ${err.message}</td></tr>`;
       }
     }
 
     function populateFilterDropdowns() {
+      const clients = new Set();
       const assignees = new Set();
       const priorities = new Set();
       const statuses = new Set();
 
       globalTickets.forEach(t => {
+        clients.add(getClientName(t));
         assignees.add(t.assignee ? `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim() : 'Unassigned');
         priorities.add(t.priority || '-');
         statuses.add(t.status || '-');
@@ -485,6 +422,7 @@
         });
       };
 
+      fillDropdown('clientDropdown', clients);
       fillDropdown('assigneeDropdown', assignees);
       fillDropdown('priorityDropdown', priorities);
       fillDropdown('statusDropdown', statuses);
@@ -496,15 +434,16 @@
     }
 
     function updateLabel(labelId, selectedCount, defaultText) {
-      const el = document.getElementById(labelId);
-      el.textContent = selectedCount === 0 ? defaultText : `${selectedCount} Selected`;
+      document.getElementById(labelId).textContent = selectedCount === 0 ? defaultText : `${selectedCount} Selected`;
     }
 
     function applyLocalFilters() {
+      const selClients = getCheckedValues('clientDropdown');
       const selAssignees = getCheckedValues('assigneeDropdown');
       const selPriorities = getCheckedValues('priorityDropdown');
       const selStatuses = getCheckedValues('statusDropdown');
       
+      updateLabel('clientLabel', selClients.length, 'All Clients');
       updateLabel('assigneeLabel', selAssignees.length, 'All Assignees');
       updateLabel('priorityLabel', selPriorities.length, 'All Priorities');
       updateLabel('statusLabel', selStatuses.length, 'All Statuses');
@@ -513,24 +452,30 @@
       const dateEnd = document.getElementById('dateEnd').value;
 
       currentFilteredTickets = globalTickets.filter(ticket => {
+        const clientName = getClientName(ticket);
         const assigneeName = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : 'Unassigned';
         const priority = ticket.priority || '-';
         const status = ticket.status || '-';
+        
         const createdDate = new Date(ticket.createdTime);
 
+        const passClient = selClients.length === 0 || selClients.includes(clientName);
         const passAssignee = selAssignees.length === 0 || selAssignees.includes(assigneeName);
         const passPriority = selPriorities.length === 0 || selPriorities.includes(priority);
         const passStatus = selStatuses.length === 0 || selStatuses.includes(status);
 
+        // Date Bug Fix: Appending 'T00:00:00' forces local time parsing to avoid timezone day-shifting
         let passDate = true;
-        if (dateStart) passDate = passDate && (createdDate >= new Date(dateStart));
+        if (dateStart) {
+          const startD = new Date(dateStart + 'T00:00:00');
+          passDate = passDate && (createdDate >= startD);
+        }
         if (dateEnd) {
-          const endD = new Date(dateEnd);
-          endD.setHours(23, 59, 59);
+          const endD = new Date(dateEnd + 'T23:59:59');
           passDate = passDate && (createdDate <= endD);
         }
 
-        return passAssignee && passPriority && passStatus && passDate;
+        return passClient && passAssignee && passPriority && passStatus && passDate;
       });
 
       renderTable(currentFilteredTickets);
@@ -548,11 +493,12 @@
       tableBody.innerHTML = '';
 
       if(ticketsToRender.length === 0) {
-         tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 60px; color: var(--text-muted);">No tickets match your current filters.</td></tr>`;
+         tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 60px; color: var(--text-muted);">No tickets match your filters.</td></tr>`;
          return;
       }
 
       ticketsToRender.forEach((ticket, index) => {
+        const clientName = getClientName(ticket);
         const deptName = ticket.department ? ticket.department.name : 'General';
         const priority = ticket.priority || '-';
         const assigneeName = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : 'Unassigned';
@@ -564,7 +510,6 @@
           : priority;
 
         const row = document.createElement('tr');
-        // Stagger animation for table rows
         row.className = 'animate-in';
         row.style.animationDelay = `${0.1 + (index * 0.02)}s`;
         row.style.opacity = '0';
@@ -572,6 +517,7 @@
         row.innerHTML = `
           <td><strong>#${ticket.ticketNumber}</strong></td>
           <td><strong>${ticket.subject}</strong></td>
+          <td>${clientName}</td>
           <td>${priorityHtml}</td>
           <td><span class="dept-badge">${deptName}</span></td>
           <td>${assigneeName}</td>
@@ -585,11 +531,12 @@
 
     function exportToCSV() {
       let csvContent = "\uFEFF"; 
-      csvContent += "Ticket #,Subject,Priority,Department,Assignee,Status,Created Date,Ticket Link\n";
+      csvContent += "Ticket #,Subject,Client Name,Priority,Department,Assignee,Status,Created Date,Ticket Link\n";
 
       currentFilteredTickets.forEach(ticket => {
         const tNum = ticket.ticketNumber || "";
         const subj = `"${(ticket.subject || "").replace(/"/g, '""')}"`;
+        const client = `"${getClientName(ticket).replace(/"/g, '""')}"`;
         const prio = ticket.priority || "-";
         const dept = ticket.department ? ticket.department.name : "General";
         const assignee = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : "Unassigned";
@@ -597,7 +544,7 @@
         const cDate = ticket.createdTime ? new Date(ticket.createdTime).toLocaleDateString() : "";
         const link = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
 
-        csvContent += `${tNum},${subj},${prio},${dept},${assignee},${status},${cDate},${link}\n`;
+        csvContent += `${tNum},${subj},${client},${prio},${dept},${assignee},${status},${cDate},${link}\n`;
       });
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -613,6 +560,7 @@
       URL.revokeObjectURL(url); 
     }
 
+    initTheme();
     init();
   </script>
 </body>
