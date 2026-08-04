@@ -426,12 +426,18 @@
     initTheme();
     checkSession();
 
-  // Hidden Power-User Shortcut: Alt + R to force live refresh
+
+// Hidden Power-User Shortcut: Alt + R to force live refresh (PIN Protected)
     document.addEventListener('keydown', function(event) {
       if (event.altKey && (event.key === 'r' || event.key === 'R')) {
         event.preventDefault();
         if (sessionStorage.getItem('auth_session') === 'active') {
-          fetchData(true);
+          const userPin = prompt("Admin Action: Enter PIN to force live sync:");
+          if (userPin === "48268") {
+            fetchData(true);
+          } else if (userPin !== null) {
+            alert("❌ Invalid PIN. Sync aborted.");
+          }
         }
       }
     });
