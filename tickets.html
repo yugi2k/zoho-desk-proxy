@@ -162,12 +162,15 @@
 <body>
 
   <div class="header-container animate-in">
-    <div class="title-group">
+<div class="title-group">
       <a href="index.html" class="btn-back">← Back</a>
-      <h1 id="pageTitle">
-        <img src="https://www.mindmatrix.net/favicon.ico" alt="Mindmatrix" class="brand-logo">
-        Loading Tickets...
-      </h1>
+      <div>
+        <h1 id="pageTitle">
+          <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo">
+          Loading Tickets...
+        </h1>
+        <div id="lastUpdatedText" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-weight: 500;"></div>
+      </div>
     </div>
     
     <div class="header-actions">
@@ -317,12 +320,24 @@
       return full || "Unknown";
     }
 
-    async function init() {
+      async function init(forceLive = false) {
+      const lastUpdatedEl = document.getElementById('lastUpdatedText');
+
+      if (forceLive) {
+        lastUpdatedEl.textContent = "⏱️ Forcing live sync from Zoho (Takes ~15s)...";
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 60px; color: var(--accent); font-weight:500;">Forcing live sync from Zoho... please wait.</td></tr>`;
+      }
+
       try {
-        const response = await fetch(PROXY_URL, { method: 'GET' });
+        const fetchUrl = forceLive ? PROXY_URL + '?refresh=true' : PROXY_URL;
+        const response = await fetch(fetchUrl, { method: 'GET' });
         const result = await response.json();
         if (!result.data) throw new Error(result.error);
         
+        if (result.lastUpdated) {
+          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${new Date(result.lastUpdated).toLocaleString()}`;
+        }
+
         let allTickets = result.data;
         // Filter out closed tickets so the table ONLY shows open tickets, just like before
         allTickets = allTickets.filter(t => !(t.status && t.status.toLowerCase().includes('clos')));
@@ -556,6 +571,14 @@
 
     initTheme();
     init();
+
+    // Hidden Power-User Shortcut: Alt + R to force live refresh
+    document.addEventListener('keydown', function(event) {
+      if (event.altKey && (event.key === 'r' || event.key === 'R')) {
+        event.preventDefault();
+        init(true);
+      }
+    });
   </script>
 </body>
 </html>
