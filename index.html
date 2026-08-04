@@ -131,10 +131,12 @@
 </head>
 <body>
 
-  <div class="header glass-panel animate-in">
-    <div class="brand-group">
+<div class="brand-group">
       <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo">
-      <h1>Support Portal</h1>
+      <div>
+        <h1>Support Portal</h1>
+        <div id="lastUpdatedText" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-weight: 500;"></div>
+      </div>
     </div>
     <div class="header-actions">
       <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
@@ -265,12 +267,25 @@
         </a>`;
     }
 
-    async function fetchData() {
+      async function fetchData(forceLive = false) {
       const container = document.getElementById('dashboardContainer');
+      const lastUpdatedEl = document.getElementById('lastUpdatedText');
+      
+      if (forceLive) {
+        lastUpdatedEl.textContent = "⏱️ Forcing live sync from Zoho (Takes ~15s)...";
+        container.innerHTML = `<div style="text-align: center; padding: 50px;" class="animate-in delay-1"><p style="color: var(--accent); font-size: 1.2rem; font-weight: 500;">Forcing live sync from Zoho... please wait.</p></div>`;
+      }
+
       try {
-        const response = await fetch(PROXY_URL, { method: 'GET' });
+        const fetchUrl = forceLive ? PROXY_URL + '?refresh=true' : PROXY_URL;
+        const response = await fetch(fetchUrl, { method: 'GET' });
         const result = await response.json();
         if (!result.data) throw new Error(result.error || 'Failed to load tickets');
+        
+        // Render the timestamp from the backend
+        if (result.lastUpdated) {
+          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${new Date(result.lastUpdated).toLocaleString()}`;
+        }
         
         const tickets = result.data;
         
@@ -408,6 +423,16 @@
 
     initTheme();
     checkSession();
+
+  // Hidden Power-User Shortcut: Alt + R to force live refresh
+    document.addEventListener('keydown', function(event) {
+      if (event.altKey && (event.key === 'r' || event.key === 'R')) {
+        event.preventDefault();
+        if (sessionStorage.getItem('auth_session') === 'active') {
+          fetchData(true);
+        }
+      }
+    });
   </script>
 </body>
 </html>
