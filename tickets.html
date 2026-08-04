@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tickets Dashboard</title>
   
-  <!-- Favicon -->
   <link rel="icon" href="https://www.mindmatrix.net/favicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- SESSION CHECK: Redirect instantly if not logged in -->
   <script>
     if (sessionStorage.getItem('auth_session') !== 'active') {
       window.location.href = 'index.html';
@@ -22,12 +20,12 @@
       --glass-bg: rgba(30, 41, 59, 0.4);
       --glass-border: rgba(255, 255, 255, 0.08);
       --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+      --dropdown-bg: rgba(15, 23, 42, 0.98); /* Solidified Z-index fix */
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #38bdf8;
       --accent-hover: #0284c7;
       --input-bg: rgba(15, 23, 42, 0.6);
-      --priority-high: #ef4444;
       --row-hover: rgba(255, 255, 255, 0.05);
       --th-bg: rgba(15, 23, 42, 0.4);
     }
@@ -37,6 +35,7 @@
       --glass-bg: rgba(255, 255, 255, 0.6);
       --glass-border: rgba(255, 255, 255, 0.6);
       --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+      --dropdown-bg: rgba(255, 255, 255, 0.98); /* Solidified Z-index fix */
       --text-main: #0f172a;
       --text-muted: #475569;
       --accent: #0ea5e9;
@@ -72,32 +71,18 @@
       border-radius: 16px;
     }
 
-    .header-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    
-    .title-group {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    h1 { margin: 0; font-size: 1.6rem; font-weight: 700; }
+    .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 20px; }
+    .title-group { display: flex; align-items: center; gap: 15px; }
+    .brand-logo { height: 28px; border-radius: 4px; }
+    h1 { margin: 0; font-size: 1.6rem; font-weight: 700; display: flex; align-items: center; gap: 10px;}
 
     .header-actions { display: flex; gap: 12px; }
-    
     .icon-btn {
       background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main);
       padding: 10px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.3s ease; width: 40px; height: 40px;
     }
     .icon-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
-
     .btn-back {
       background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border);
       padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none;
@@ -105,29 +90,23 @@
     }
     .btn-back:hover { background: rgba(255,255,255,0.1); transform: translateX(-4px); }
 
-    /* Controls & Z-Index Fixes */
     .controls-panel {
       display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; padding: 16px 24px;
-      position: relative; z-index: 50; /* Z-INDEX FIX: Forces dropdown above table */
-      margin-bottom: 20px;
+      position: relative; z-index: 50; margin-bottom: 20px;
     }
     
     .filter-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
     .filter-group label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
     
-    /* Modernized Date Picker */
     .filter-group input[type="date"] {
       background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border);
       padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; height: 40px; box-sizing: border-box;
       outline: none; font-family: inherit; transition: all 0.3s; cursor: pointer;
     }
-    .filter-group input[type="date"]::-webkit-calendar-picker-indicator { 
-      filter: invert(0.6); cursor: pointer; opacity: 0.6; transition: 0.2s;
-    }
+    .filter-group input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; opacity: 0.6; transition: 0.2s; }
     .filter-group input[type="date"]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
     .filter-group input[type="date"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
 
-    /* Dropdowns */
     .custom-select { position: relative; width: 160px; }
     .select-btn {
       display: flex; justify-content: space-between; align-items: center; background-color: var(--input-bg);
@@ -135,10 +114,13 @@
       font-size: 0.85rem; cursor: pointer; height: 40px; box-sizing: border-box; user-select: none; transition: all 0.3s;
     }
     .select-btn:hover { border-color: var(--accent); }
+    
+    /* Z-Index & Transparency Fix */
     .select-dropdown {
-      position: absolute; top: 100%; left: 0; width: 100%; background-color: var(--glass-bg);
+      position: absolute; top: 100%; left: 0; width: 100%; 
+      background-color: var(--dropdown-bg); /* Opacity boosted to prevent text bleeding */
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
-      border-radius: 8px; margin-top: 6px; max-height: 250px; overflow-y: auto; z-index: 9999; /* Z-INDEX FIX */
+      border-radius: 8px; margin-top: 6px; max-height: 250px; overflow-y: auto; z-index: 9999;
       display: none; box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
     }
     .select-dropdown.active { display: block; }
@@ -162,10 +144,7 @@
     .btn-clear { background-color: var(--text-muted); }
     .btn-clear:hover { background-color: #475569; }
 
-    /* Table */
-    .table-container {
-      overflow-x: auto; border-radius: 16px; position: relative; z-index: 1; /* Ensures it sits under dropdowns */
-    }
+    .table-container { overflow-x: auto; border-radius: 16px; position: relative; z-index: 1; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 16px 20px; border-bottom: 1px solid var(--glass-border); font-size: 0.9rem; }
     th { background-color: var(--th-bg); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
@@ -185,7 +164,10 @@
   <div class="header-container animate-in">
     <div class="title-group">
       <a href="index.html" class="btn-back">← Back</a>
-      <h1 id="pageTitle">Loading Tickets...</h1>
+      <h1 id="pageTitle">
+        <img src="https://www.mindmatrix.net/favicon.ico" alt="Mindmatrix" class="brand-logo">
+        Loading Tickets...
+      </h1>
     </div>
     
     <div class="header-actions">
@@ -208,7 +190,6 @@
       <input type="date" id="dateEnd" onchange="applyLocalFilters()">
     </div>
 
-    <!-- NEW: Client Name Filter -->
     <div class="filter-group">
       <label>Client Name</label>
       <div class="custom-select">
@@ -261,7 +242,7 @@
         <tr>
           <th>Ticket #</th>
           <th>Subject</th>
-          <th>Client Name</th> <!-- NEW Column -->
+          <th>Client Name</th>
           <th>Priority</th>
           <th>Department</th>
           <th>Assignee</th>
@@ -307,8 +288,6 @@
     const filterType = urlParams.get('filter'); 
     const filterValue = urlParams.get('value');
 
-    document.getElementById('pageTitle').textContent = filterType === 'all' ? 'All Open Tickets' : `${filterValue} Tickets`;
-
     let globalTickets = []; 
     let currentFilteredTickets = []; 
 
@@ -325,12 +304,15 @@
       document.getElementById(id).classList.toggle('active');
     }
 
-    // Helper to safely extract client name from Zoho payload
+    // Extended Client Name extraction to catch Zoho custom fields
     function getClientName(ticket) {
-      if (!ticket.contact) return "Unknown";
-      if (ticket.contact.account && ticket.contact.account.accountName) return ticket.contact.account.accountName;
-      const fName = ticket.contact.firstName || "";
-      const lName = ticket.contact.lastName || "";
+      if (ticket.customFields && ticket.customFields['Client Name']) return ticket.customFields['Client Name'];
+      if (ticket.cf && ticket.cf['Client Name']) return ticket.cf['Client Name'];
+      if (ticket['Client Name']) return ticket['Client Name'];
+      if (ticket.clientName) return ticket.clientName;
+      if (ticket.contact && ticket.contact.account && ticket.contact.account.accountName) return ticket.contact.account.accountName;
+      const fName = ticket.contact ? (ticket.contact.firstName || "") : "";
+      const lName = ticket.contact ? (ticket.contact.lastName || "") : "";
       const full = `${fName} ${lName}`.trim();
       return full || "Unknown";
     }
@@ -385,9 +367,10 @@
             return true;
           });
           const titles = { today: "Today's", yesterday: "Yesterday's", last7: "Last 7 Days", currentWeek: "This Week's", lastWeek: "Last Week's", last30: "Last 30 Days", currentMonth: "This Month's", lastMonth: "Last Month's" };
-          document.getElementById('pageTitle').textContent = `${titles[filterValue] || filterValue} Tickets`;
+          document.getElementById('pageTitle').innerHTML = `<img src="https://www.mindmatrix.net/favicon.ico" alt="Mindmatrix" class="brand-logo"> ${titles[filterValue] || filterValue} Tickets`;
         } else {
           globalTickets = allTickets;
+          document.getElementById('pageTitle').innerHTML = `<img src="https://www.mindmatrix.net/favicon.ico" alt="Mindmatrix" class="brand-logo"> All Tickets`;
         }
 
         currentFilteredTickets = [...globalTickets];
@@ -464,7 +447,6 @@
         const passPriority = selPriorities.length === 0 || selPriorities.includes(priority);
         const passStatus = selStatuses.length === 0 || selStatuses.includes(status);
 
-        // Date Bug Fix: Appending 'T00:00:00' forces local time parsing to avoid timezone day-shifting
         let passDate = true;
         if (dateStart) {
           const startD = new Date(dateStart + 'T00:00:00');
@@ -505,8 +487,18 @@
         const createdDate = ticket.createdTime ? new Date(ticket.createdTime).toLocaleDateString() : '-';
         const deskDirectUrl = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
 
+        let bgColor = '#94a3b8'; 
+        let textColor = '#ffffff';
+        const p = priority.toLowerCase();
+        
+        if (p.includes('low')) { bgColor = '#86efac'; textColor = '#0f172a'; } 
+        else if (p.includes('medium')) { bgColor = '#fde047'; textColor = '#0f172a'; } 
+        else if (p.includes('high')) { bgColor = '#f97316'; textColor = '#ffffff'; } 
+        else if (p.includes('urgent')) { bgColor = '#fca5a5'; textColor = '#0f172a'; } 
+        else if (p.includes('critical')) { bgColor = '#ef4444'; textColor = '#ffffff'; } 
+
         const priorityHtml = (priority !== '-') 
-          ? `<span class="priority-badge" style="background-color: ${priority === 'Urgent' || priority === 'Critical' ? 'var(--priority-high)' : '#f59e0b'};">${priority}</span>` 
+          ? `<span class="priority-badge" style="background-color: ${bgColor}; color: ${textColor};">${priority}</span>` 
           : priority;
 
         const row = document.createElement('tr');
