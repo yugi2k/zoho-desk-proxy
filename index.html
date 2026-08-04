@@ -150,6 +150,19 @@
 </head>
 <body>
 
+  <!-- PIN Modal -->
+  <div id="pinModal" class="modal-overlay">
+    <div class="modal-content glass-panel animate-in">
+      <h3>Admin Action</h3>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Enter PIN to force live sync:</p>
+      <input type="password" id="pinInput" class="pin-input" placeholder="•••••">
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn-action btn-clear" onclick="closePinModal()">Cancel</button>
+        <button class="btn-action btn-export" id="submitPinBtn">Sync Data</button>
+      </div>
+    </div>
+  </div>
+
 <div class="header glass-panel animate-in">
     <div class="brand-group">
       <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo">
