@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tickets Dashboard</title>
   
-  <link rel="icon" href="https://www.mindmatrix.net/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <script>
@@ -369,10 +369,10 @@
             return true;
           });
           const titles = { today: "Today's", yesterday: "Yesterday's", last7: "Last 7 Days", currentWeek: "This Week's", lastWeek: "Last Week's", last30: "Last 30 Days", currentMonth: "This Month's", lastMonth: "Last Month's" };
-          document.getElementById('pageTitle').innerHTML = `<img src="https://www.mindmatrix.net/favicon.ico" alt="Mindmatrix" class="brand-logo"> ${titles[filterValue] || filterValue} Tickets`;
+         document.getElementById('pageTitle').innerHTML = `<img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo"> ${titles[filterValue] || filterValue} Tickets`;
         } else {
           globalTickets = allTickets;
-          document.getElementById('pageTitle').innerHTML = `<img src="https://www.mindmatrix.net/favicon.ico" alt="Mindmatrix" class="brand-logo"> All Tickets`;
+          document.getElementById('pageTitle').innerHTML = `<img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo"> All Tickets`;
         }
 
         currentFilteredTickets = [...globalTickets];
