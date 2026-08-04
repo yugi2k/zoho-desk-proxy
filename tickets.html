@@ -603,17 +603,53 @@
     init();
 
 // Hidden Power-User Shortcut: Alt + R to force live refresh (PIN Protected)
+function showPinModal() {
+      document.getElementById('pinModal').style.display = 'flex';
+      document.getElementById('pinInput').value = '';
+      setTimeout(() => document.getElementById('pinInput').focus(), 100);
+    }
+    
+    function closePinModal() {
+      document.getElementById('pinModal').style.display = 'none';
+    }
+
+    document.getElementById('submitPinBtn').addEventListener('click', function() {
+      const pin = document.getElementById('pinInput').value;
+      closePinModal();
+      init(true, pin);
+    });
+
     document.addEventListener('keydown', function(event) {
       if (event.altKey && (event.key === 'r' || event.key === 'R')) {
         event.preventDefault();
-        const userPin = prompt("Admin Action: Enter PIN to force live sync:");
-        if (userPin === "48268") {
-          init(true);
-        } else if (userPin !== null) {
-          alert("❌ Invalid PIN. Sync aborted.");
-        }
+        showPinModal();
       }
     });
+
+    async function init(forceLive = false, pin = '') {
+      const lastUpdatedEl = document.getElementById('lastUpdatedText');
+
+      if (forceLive) {
+        lastUpdatedEl.textContent = "⏱️ Forcing live sync from Zoho (Takes ~15s)...";
+        document.getElementById('ticketTableBody').innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 60px; color: var(--accent); font-weight:500;">Forcing live sync from Zoho... please wait.</td></tr>`;
+      }
+
+      try {
+        const fetchUrl = forceLive ? `${PROXY_URL}?refresh=true&pin=${encodeURIComponent(pin)}` : PROXY_URL;
+        const response = await fetch(fetchUrl, { method: 'GET' });
+        const result = await response.json();
+        
+        if (result.error) {
+          if (forceLive) { alert(result.error); location.reload(); return; }
+          throw new Error(result.error);
+        }
+        
+        if (result.lastUpdated) {
+          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${new Date(result.lastUpdated).toLocaleString()}`;
+        }
+
+        let allTickets = result.data;
+        // ... (Keep the rest of your init logic from here down!)
   </script>
 </body>
 </html>
