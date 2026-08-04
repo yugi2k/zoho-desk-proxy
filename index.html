@@ -301,27 +301,62 @@
         </a>`;
     }
 
-      async function fetchData(forceLive = false) {
+    // --- PIN MODAL LOGIC ---
+    function showPinModal() {
+      const modal = document.getElementById('pinModal');
+      if(modal) {
+        modal.style.display = 'flex';
+        document.getElementById('pinInput').value = '';
+        setTimeout(() => document.getElementById('pinInput').focus(), 100);
+      }
+    }
+    
+    function closePinModal() {
+      const modal = document.getElementById('pinModal');
+      if(modal) modal.style.display = 'none';
+    }
+
+    const submitBtn = document.getElementById('submitPinBtn');
+    if(submitBtn) {
+      submitBtn.addEventListener('click', function() {
+        const pin = document.getElementById('pinInput').value;
+        closePinModal();
+        fetchData(true, pin);
+      });
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.altKey && (event.key === 'r' || event.key === 'R')) {
+        event.preventDefault();
+        if (sessionStorage.getItem('auth_session') === 'active') showPinModal();
+      }
+    });
+    // -----------------------
+
+    async function fetchData(forceLive = false, pin = '') {
       const container = document.getElementById('dashboardContainer');
       const lastUpdatedEl = document.getElementById('lastUpdatedText');
       
       if (forceLive) {
-        lastUpdatedEl.textContent = "⏱️ Forcing live sync from Zoho (Takes ~15s)...";
+        if(lastUpdatedEl) lastUpdatedEl.textContent = "⏱️ Forcing live sync from Zoho (Takes ~15s)...";
         container.innerHTML = `<div style="text-align: center; padding: 50px;" class="animate-in delay-1"><p style="color: var(--accent); font-size: 1.2rem; font-weight: 500;">Forcing live sync from Zoho... please wait.</p></div>`;
       }
 
       try {
-        const fetchUrl = forceLive ? PROXY_URL + '?refresh=true' : PROXY_URL;
+        const fetchUrl = forceLive ? `${PROXY_URL}?refresh=true&pin=${encodeURIComponent(pin)}` : PROXY_URL;
         const response = await fetch(fetchUrl, { method: 'GET' });
         const result = await response.json();
-        if (!result.data) throw new Error(result.error || 'Failed to load tickets');
         
-        // Render the timestamp from the backend
-        if (result.lastUpdated) {
+        if (result.error) {
+          if (forceLive) { alert(result.error); window.location.reload(); return; }
+          throw new Error(result.error);
+        }
+        
+        if (result.lastUpdated && lastUpdatedEl) {
           lastUpdatedEl.innerHTML = `⏱️ Last updated: ${new Date(result.lastUpdated).toLocaleString()}`;
         }
         
-        const tickets = result.data;
+        const tickets = result.data || [];
         
         const today = new Date(); today.setHours(0,0,0,0);
         const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
@@ -334,34 +369,24 @@
         const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
 
-        // Stats tracking
-// 1. Initialize both Volume counts (Open only) and Stats counts (All)
         const timeCounts = { today: 0, yesterday: 0, last7: 0, currentWeek: 0, lastWeek: 0, last30: 0, currentMonth: 0, lastMonth: 0 };
-        
         const stats = {
           today: { total: 0, open: 0, closed: 0 }, yesterday: { total: 0, open: 0, closed: 0 },
           currentWeek: { total: 0, open: 0, closed: 0 }, lastWeek: { total: 0, open: 0, closed: 0 },
           last7: { total: 0, open: 0, closed: 0 }, currentMonth: { total: 0, open: 0, closed: 0 },
           lastMonth: { total: 0, open: 0, closed: 0 }, last30: { total: 0, open: 0, closed: 0 }
         };
-        
         const deptCounts = {};
         const priorityCounts = {};
 
-        // 2. Loop through tickets and apply exact Status rules
         tickets.forEach(ticket => {
           const tDate = new Date(ticket.createdTime);
           const status = ticket.status ? ticket.status.toLowerCase() : '';
-          
-          // Status rule: if it contains 'close', it is closed. Otherwise, treat as open.
           const isClosed = status.includes('close');
           
           const increment = (key) => {
-            // Stats Section: Count everything
             stats[key].total++;
             if (isClosed) stats[key].closed++; else stats[key].open++;
-            
-            // Volumes Section: Count ONLY open tickets
             if (!isClosed) timeCounts[key]++;
           };
 
@@ -382,12 +407,8 @@
           }
         });
 
-        const openTicketsOnly = tickets.filter(t => {
-           const s = t.status ? t.status.toLowerCase() : '';
-           return !s.includes('close');
-        });
+        const openTicketsOnly = tickets.filter(t => !((t.status || '').toLowerCase().includes('close')));
 
-        // 3. Render both sections back to the dashboard
         let html = `
           <div class="dashboard-grid animate-in delay-1" style="margin-bottom: 30px;">
             <a href="tickets.html?filter=all" class="metric-card glass-panel total-card">
@@ -396,7 +417,6 @@
             </a>
           </div>
 
-          <!-- RESTORED: Ticket Volumes (Open Only) -->
           <div class="section-title animate-in delay-1">Ticket Volumes (Open Only)</div>
           <div class="dashboard-grid animate-in delay-2" style="margin-bottom: 30px;">
             <a href="tickets.html?filter=timeframe&value=today" class="metric-card glass-panel"><h3>Today</h3><p>${timeCounts.today}</p></a>
@@ -409,7 +429,6 @@
             <a href="tickets.html?filter=timeframe&value=last30" class="metric-card glass-panel"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
           </div>
 
-          <!-- NEW: Ticket Stats (All Open & Closed) -->
           <div class="section-title animate-in delay-1">Ticket Stats (All Open & Closed)</div>
           <div class="dashboard-grid animate-in delay-2">
             ${createStatCard('Today', 'today', stats.today)}
@@ -428,15 +447,13 @@
         
         Object.entries(priorityCounts).forEach(([priority, count]) => {
           if (count > 0) {
-            let bgColor = '#94a3b8'; // Default
-            let textColor = '#ffffff';
+            let bgColor = '#94a3b8'; let textColor = '#ffffff';
             const p = priority.toLowerCase();
-            
-            if (p.includes('low')) { bgColor = '#86efac'; textColor = '#0f172a'; } // Light Green
-            else if (p.includes('medium')) { bgColor = '#fde047'; textColor = '#0f172a'; } // Yellow
-            else if (p.includes('high')) { bgColor = '#f97316'; textColor = '#ffffff'; } // Orange
-            else if (p.includes('urgent')) { bgColor = '#fca5a5'; textColor = '#0f172a'; } // Light Red
-            else if (p.includes('critical')) { bgColor = '#ef4444'; textColor = '#ffffff'; } // Red
+            if (p.includes('low')) { bgColor = '#86efac'; textColor = '#0f172a'; } 
+            else if (p.includes('medium')) { bgColor = '#fde047'; textColor = '#0f172a'; } 
+            else if (p.includes('high')) { bgColor = '#f97316'; textColor = '#ffffff'; } 
+            else if (p.includes('urgent')) { bgColor = '#fca5a5'; textColor = '#0f172a'; } 
+            else if (p.includes('critical')) { bgColor = '#ef4444'; textColor = '#ffffff'; } 
 
             html += `<a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" class="metric-card glass-panel"><div><span class="priority-badge" style="background-color: ${bgColor}; color: ${textColor};">${priority}</span></div><p>${count}</p></a>`;
           }
@@ -457,58 +474,6 @@
 
     initTheme();
     checkSession();
-
-
-// Hidden Power-User Shortcut: Alt + R to force live refresh (PIN Protected)
-function showPinModal() {
-      document.getElementById('pinModal').style.display = 'flex';
-      document.getElementById('pinInput').value = '';
-      setTimeout(() => document.getElementById('pinInput').focus(), 100);
-    }
-    
-    function closePinModal() {
-      document.getElementById('pinModal').style.display = 'none';
-    }
-
-    document.getElementById('submitPinBtn').addEventListener('click', function() {
-      const pin = document.getElementById('pinInput').value;
-      closePinModal();
-      fetchData(true, pin);
-    });
-
-    document.addEventListener('keydown', function(event) {
-      if (event.altKey && (event.key === 'r' || event.key === 'R')) {
-        event.preventDefault();
-        if (sessionStorage.getItem('auth_session') === 'active') showPinModal();
-      }
-    });
-
-    async function fetchData(forceLive = false, pin = '') {
-      const container = document.getElementById('dashboardContainer');
-      const lastUpdatedEl = document.getElementById('lastUpdatedText');
-      
-      if (forceLive) {
-        lastUpdatedEl.textContent = "⏱️ Forcing live sync from Zoho (Takes ~15s)...";
-        container.innerHTML = `<div style="text-align: center; padding: 50px;" class="animate-in delay-1"><p style="color: var(--accent); font-size: 1.2rem; font-weight: 500;">Forcing live sync from Zoho... please wait.</p></div>`;
-      }
-
-      try {
-        const fetchUrl = forceLive ? `${PROXY_URL}?refresh=true&pin=${encodeURIComponent(pin)}` : PROXY_URL;
-        const response = await fetch(fetchUrl, { method: 'GET' });
-        const result = await response.json();
-        
-        // If the backend rejects the PIN, stop everything and show the error
-        if (result.error) {
-          if (forceLive) { alert(result.error); location.reload(); return; }
-          throw new Error(result.error);
-        }
-        
-        if (result.lastUpdated) {
-          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${new Date(result.lastUpdated).toLocaleString()}`;
-        }
-        
-        const tickets = result.data;
-        // ... (Keep the rest of your fetchData logic from here down!)
   </script>
 </body>
 </html>
