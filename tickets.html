@@ -324,6 +324,8 @@
         if (!result.data) throw new Error(result.error);
         
         let allTickets = result.data;
+        // Filter out closed tickets so the table ONLY shows open tickets, just like before
+        allTickets = allTickets.filter(t => !(t.status && t.status.toLowerCase().includes('clos')));
         
         if (filterType === 'priority') {
           globalTickets = allTickets.filter(t => t.priority === filterValue);
