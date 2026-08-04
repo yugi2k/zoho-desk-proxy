@@ -286,6 +286,9 @@
         const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
 
         // Stats tracking
+// 1. Initialize both Volume counts (Open only) and Stats counts (All)
+        const timeCounts = { today: 0, yesterday: 0, last7: 0, currentWeek: 0, lastWeek: 0, last30: 0, currentMonth: 0, lastMonth: 0 };
+        
         const stats = {
           today: { total: 0, open: 0, closed: 0 }, yesterday: { total: 0, open: 0, closed: 0 },
           currentWeek: { total: 0, open: 0, closed: 0 }, lastWeek: { total: 0, open: 0, closed: 0 },
@@ -296,13 +299,21 @@
         const deptCounts = {};
         const priorityCounts = {};
 
+        // 2. Loop through tickets and apply exact Status rules
         tickets.forEach(ticket => {
           const tDate = new Date(ticket.createdTime);
-          const isClosed = ticket.status && ticket.status.toLowerCase().includes('clos');
+          const status = ticket.status ? ticket.status.toLowerCase() : '';
+          
+          // Status rule: if it contains 'close', it is closed. Otherwise, treat as open.
+          const isClosed = status.includes('close');
           
           const increment = (key) => {
+            // Stats Section: Count everything
             stats[key].total++;
             if (isClosed) stats[key].closed++; else stats[key].open++;
+            
+            // Volumes Section: Count ONLY open tickets
+            if (!isClosed) timeCounts[key]++;
           };
 
           if (tDate >= today) increment('today');
@@ -314,7 +325,6 @@
           if (tDate >= currentMonth) increment('currentMonth');
           if (tDate >= lastMonthStart && tDate <= lastMonthEnd) increment('lastMonth');
 
-          // Only open tickets for Dept & Priority counts (standard behavior)
           if (!isClosed) {
             const deptName = ticket.department ? ticket.department.name : 'General';
             deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
@@ -323,8 +333,12 @@
           }
         });
 
-        const openTicketsOnly = tickets.filter(t => !(t.status && t.status.toLowerCase().includes('clos')));
+        const openTicketsOnly = tickets.filter(t => {
+           const s = t.status ? t.status.toLowerCase() : '';
+           return !s.includes('close');
+        });
 
+        // 3. Render both sections back to the dashboard
         let html = `
           <div class="dashboard-grid animate-in delay-1" style="margin-bottom: 30px;">
             <a href="tickets.html?filter=all" class="metric-card glass-panel total-card">
@@ -333,6 +347,20 @@
             </a>
           </div>
 
+          <!-- RESTORED: Ticket Volumes (Open Only) -->
+          <div class="section-title animate-in delay-1">Ticket Volumes (Open Only)</div>
+          <div class="dashboard-grid animate-in delay-2" style="margin-bottom: 30px;">
+            <a href="tickets.html?filter=timeframe&value=today" class="metric-card glass-panel"><h3>Today</h3><p>${timeCounts.today}</p></a>
+            <a href="tickets.html?filter=timeframe&value=yesterday" class="metric-card glass-panel"><h3>Yesterday</h3><p>${timeCounts.yesterday}</p></a>
+            <a href="tickets.html?filter=timeframe&value=currentWeek" class="metric-card glass-panel"><h3>This Week</h3><p>${timeCounts.currentWeek}</p></a>
+            <a href="tickets.html?filter=timeframe&value=lastWeek" class="metric-card glass-panel"><h3>Last Week</h3><p>${timeCounts.lastWeek}</p></a>
+            <a href="tickets.html?filter=timeframe&value=last7" class="metric-card glass-panel"><h3>Last 7 Days</h3><p>${timeCounts.last7}</p></a>
+            <a href="tickets.html?filter=timeframe&value=currentMonth" class="metric-card glass-panel"><h3>This Month</h3><p>${timeCounts.currentMonth}</p></a>
+            <a href="tickets.html?filter=timeframe&value=lastMonth" class="metric-card glass-panel"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
+            <a href="tickets.html?filter=timeframe&value=last30" class="metric-card glass-panel"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
+          </div>
+
+          <!-- NEW: Ticket Stats (All Open & Closed) -->
           <div class="section-title animate-in delay-1">Ticket Stats (All Open & Closed)</div>
           <div class="dashboard-grid animate-in delay-2">
             ${createStatCard('Today', 'today', stats.today)}
@@ -365,7 +393,7 @@
           }
         });
         
-        html += `</div><div class="section-title animate-in delay-3">Open Tickets By Department</div><div class="dashboard-grid animate-in delay-3">`;
+        html += `</div><div class="section-title animate-in delay-3">Open Tickets By Department</div><div class="dashboard-grid animate-in delay-3" style="margin-bottom: 20px;">`;
         Object.entries(deptCounts).forEach(([dept, count]) => {
           html += `<a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" class="metric-card glass-panel"><h3>${dept}</h3><p>${count}</p></a>`;
         });
