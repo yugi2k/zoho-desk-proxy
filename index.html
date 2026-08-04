@@ -5,12 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Desk Portal | Dashboard</title>
   
-  <!-- Favicon -->
   <link rel="icon" href="https://www.mindmatrix.net/favicon.ico" type="image/x-icon">
-  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Google Identity Services for SSO -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
@@ -24,7 +20,6 @@
       --accent: #38bdf8;
       --accent-hover: #0284c7;
       --input-bg: rgba(15, 23, 42, 0.6);
-      --priority-high: #ef4444;
     }
     
     body.light-mode {
@@ -53,11 +48,7 @@
       flex-direction: column;
     }
 
-    /* Animations */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .animate-in { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .delay-1 { animation-delay: 0.1s; opacity: 0; }
     .delay-2 { animation-delay: 0.2s; opacity: 0; }
@@ -72,42 +63,25 @@
       border-radius: 16px;
     }
 
-    /* Top Navigation */
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 40px;
-      padding: 15px 25px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding: 15px 25px;
     }
+    
+    .brand-group {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand-logo { height: 32px; border-radius: 4px;}
     .header h1 { margin: 0; font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; }
     
-    .header-actions {
-      display: flex;
-      gap: 12px;
-    }
-
+    .header-actions { display: flex; gap: 12px; }
     .icon-btn {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      color: var(--text-main);
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      width: 40px;
-      height: 40px;
+      background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-main); padding: 10px;
+      border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease; width: 40px; height: 40px;
     }
-    .icon-btn:hover {
-      background: rgba(255,255,255,0.1);
-      transform: translateY(-2px);
-    }
+    .icon-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
     .logout-btn { display: none; }
 
-    /* Login Screen */
     #loginScreen { display: flex; justify-content: center; align-items: center; flex: 1; }
     .login-card { padding: 50px 40px; width: 100%; max-width: 420px; text-align: center; }
     .login-card h2 { margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.8rem; }
@@ -133,33 +107,35 @@
     .divider:not(:empty)::before { margin-right: 1em; }
     .divider:not(:empty)::after { margin-left: 1em; }
 
-    /* Dashboard Styles */
     #dashboardScreen { display: none; flex: 1; }
     .section-title { font-size: 1rem; color: var(--text-muted); margin: 40px 0 20px 0; text-transform: uppercase; font-weight: 600; display: flex; align-items: center; gap: 10px; }
     .section-title::after { content: ''; flex: 1; height: 1px; background: var(--glass-border); }
     .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+    
     .metric-card { padding: 24px; text-align: center; text-decoration: none; color: inherit; transition: all 0.3s; display: flex; flex-direction: column; justify-content: center; }
     .metric-card:hover { transform: translateY(-8px) scale(1.02); border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); }
     .metric-card h3 { margin: 0; font-size: 0.95rem; font-weight: 500; color: var(--text-muted); }
     .metric-card p { margin: 15px 0 0 0; font-size: 3rem; font-weight: 700; color: var(--text-main); }
+    
+    .stats-subtext { margin-top: 10px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;}
+    .stats-open { color: #38bdf8; }
+    .stats-closed { color: #94a3b8; }
+    
     .total-card { grid-column: 1 / -1; border-color: var(--accent); background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, transparent 100%); }
     .total-card p { color: var(--accent); }
-    .priority-badge { display: inline-block; color: white; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
+    
+    .priority-badge { display: inline-block; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
 
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 30px 0 10px 0;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      margin-top: auto;
-    }
+    footer { text-align: center; padding: 30px 0 10px 0; color: var(--text-muted); font-size: 0.8rem; margin-top: auto; }
   </style>
 </head>
 <body>
 
   <div class="header glass-panel animate-in">
-    <h1>Support Portal</h1>
+    <div class="brand-group">
+      <img src="https://www.mindmatrix.net/favicon.ico" alt="Mindmatrix" class="brand-logo">
+      <h1>Support Portal</h1>
+    </div>
     <div class="header-actions">
       <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
         <span id="themeIcon">☀️</span>
@@ -170,40 +146,27 @@
     </div>
   </div>
 
-  <!-- LOGIN SCREEN -->
   <div id="loginScreen">
     <div class="login-card glass-panel animate-in delay-1">
       <h2>Staff Login</h2>
       <p>Authorized accounts only.</p>
-      
       <div class="otp-group">
         <label>Email Address</label>
         <input type="email" id="emailInput" placeholder="name@mindmatrix.net">
         <button class="btn-login" onclick="requestOTP()">Send OTP</button>
       </div>
-
       <div class="otp-group" id="otpStep2" style="display: none;">
         <label>One-Time Password</label>
         <input type="text" id="otpInput" placeholder="Enter 6-digit code">
         <button class="btn-login" onclick="verifyOTP()">Login securely</button>
       </div>
-
       <div class="divider">OR</div>
-
-      <div id="g_id_onload"
-         data-client_id="801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com"
-         data-context="signin"
-         data-ux_mode="popup"
-         data-callback="handleGoogleLogin"
-         data-auto_prompt="false">
-      </div>
+      <div id="g_id_onload" data-client_id="801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com" data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
       <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
-      
       <p id="loginError" style="color: #ef4444; margin-top: 20px; font-size: 0.9rem; display: none; font-weight: 500;"></p>
     </div>
   </div>
 
-  <!-- DASHBOARD SCREEN -->
   <div id="dashboardScreen">
     <div id="dashboardContainer">
       <div style="text-align: center; padding: 50px;" class="animate-in delay-1">
@@ -234,11 +197,8 @@
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
     }
 
-    // --- Authentication & Session Handling ---
     function checkSession() {
-      if (sessionStorage.getItem('auth_session') === 'active') {
-        showDashboard();
-      }
+      if (sessionStorage.getItem('auth_session') === 'active') showDashboard();
     }
 
     function logout() {
@@ -247,18 +207,16 @@
     }
 
     function showDashboard() {
-      sessionStorage.setItem('auth_session', 'active'); // Lock the session in
+      sessionStorage.setItem('auth_session', 'active');
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboardScreen').style.display = 'block';
       document.getElementById('logoutBtn').style.display = 'flex';
       fetchData(); 
     }
-    // ------------------------------------------
 
     function showError(msg) {
       const errEl = document.getElementById('loginError');
-      errEl.textContent = msg;
-      errEl.style.display = 'block';
+      errEl.textContent = msg; errEl.style.display = 'block';
     }
 
     let pendingEmail = "";
@@ -266,56 +224,45 @@
     async function requestOTP() {
       const email = document.getElementById('emailInput').value.trim();
       const btn = document.querySelector('button[onclick="requestOTP()"]');
-      if (!email.endsWith('@mindmatrix.net')) {
-        showError('Access restricted to @mindmatrix.net emails.');
-        return;
-      }
-      document.getElementById('loginError').style.display = 'none';
-      btn.textContent = "Sending...";
-      btn.disabled = true;
-
+      if (!email.endsWith('@mindmatrix.net')) { showError('Access restricted to @mindmatrix.net emails.'); return; }
+      document.getElementById('loginError').style.display = 'none'; btn.textContent = "Sending..."; btn.disabled = true;
       try {
         const response = await fetch(PROXY_URL, { method: 'POST', body: JSON.stringify({ action: 'sendOtp', email: email }) });
         const result = await response.json();
         if (result.error) throw new Error(result.error);
-        
-        pendingEmail = email;
-        document.getElementById('otpStep2').style.display = 'block';
-        document.getElementById('otpStep2').classList.add('animate-in');
-        btn.textContent = "OTP Sent!";
-      } catch (err) {
-        showError("Failed to send OTP.");
-        btn.textContent = "Send OTP";
-        btn.disabled = false;
-      }
+        pendingEmail = email; document.getElementById('otpStep2').style.display = 'block';
+        document.getElementById('otpStep2').classList.add('animate-in'); btn.textContent = "OTP Sent!";
+      } catch (err) { showError("Failed to send OTP."); btn.textContent = "Send OTP"; btn.disabled = false; }
     }
 
     async function verifyOTP() {
       const otp = document.getElementById('otpInput').value.trim();
       const btn = document.querySelector('button[onclick="verifyOTP()"]');
-      if (!otp) return;
-      btn.textContent = "Verifying...";
-      btn.disabled = true;
-
+      if (!otp) return; btn.textContent = "Verifying..."; btn.disabled = true;
       try {
         const response = await fetch(PROXY_URL, { method: 'POST', body: JSON.stringify({ action: 'verifyOtp', email: pendingEmail, otp: otp }) });
         const result = await response.json();
         if (result.error) throw new Error(result.error);
         showDashboard();
-      } catch (err) {
-        showError("Invalid or expired OTP.");
-        btn.textContent = "Login securely";
-        btn.disabled = false;
-      }
+      } catch (err) { showError("Invalid or expired OTP."); btn.textContent = "Login securely"; btn.disabled = false; }
     }
 
     function handleGoogleLogin(response) {
       const responsePayload = JSON.parse(atob(response.credential.split('.')[1]));
-      if (responsePayload.email.endsWith('@mindmatrix.net')) {
-        showDashboard();
-      } else {
-        showError('Access denied. Must use a Mindmatrix Google account.');
-      }
+      if (responsePayload.email.endsWith('@mindmatrix.net')) showDashboard();
+      else showError('Access denied. Must use a Mindmatrix Google account.');
+    }
+
+    function createStatCard(title, filterValue, statObj) {
+      return `
+        <a href="tickets.html?filter=timeframe&value=${filterValue}" class="metric-card glass-panel">
+          <h3>${title}</h3>
+          <p>${statObj.total}</p>
+          <div class="stats-subtext">
+            <span class="stats-open">Open: ${statObj.open}</span> &nbsp;|&nbsp; 
+            <span class="stats-closed">Closed: ${statObj.closed}</span>
+          </div>
+        </a>`;
     }
 
     async function fetchData() {
@@ -326,6 +273,7 @@
         if (!result.data) throw new Error(result.error || 'Failed to load tickets');
         
         const tickets = result.data;
+        
         const today = new Date(); today.setHours(0,0,0,0);
         const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
         const last7Days = new Date(today); last7Days.setDate(last7Days.getDate() - 7);
@@ -337,58 +285,87 @@
         const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
 
-        const timeCounts = { today: 0, yesterday: 0, last7: 0, currentWeek: 0, lastWeek: 0, last30: 0, currentMonth: 0, lastMonth: 0 };
+        // Stats tracking
+        const stats = {
+          today: { total: 0, open: 0, closed: 0 }, yesterday: { total: 0, open: 0, closed: 0 },
+          currentWeek: { total: 0, open: 0, closed: 0 }, lastWeek: { total: 0, open: 0, closed: 0 },
+          last7: { total: 0, open: 0, closed: 0 }, currentMonth: { total: 0, open: 0, closed: 0 },
+          lastMonth: { total: 0, open: 0, closed: 0 }, last30: { total: 0, open: 0, closed: 0 }
+        };
+        
         const deptCounts = {};
-        const priorityCounts = { 'Critical': 0, 'Urgent': 0, 'High': 0, 'Medium': 0, 'Low': 0 };
+        const priorityCounts = {};
 
         tickets.forEach(ticket => {
           const tDate = new Date(ticket.createdTime);
-          if (tDate >= today) timeCounts.today++;
-          if (tDate >= yesterday && tDate < today) timeCounts.yesterday++;
-          if (tDate >= last7Days) timeCounts.last7++;
-          if (tDate >= currentWeek) timeCounts.currentWeek++;
-          if (tDate >= lastWeekStart && tDate < lastWeekEnd) timeCounts.lastWeek++;
-          if (tDate >= last30Days) timeCounts.last30++;
-          if (tDate >= currentMonth) timeCounts.currentMonth++;
-          if (tDate >= lastMonthStart && tDate <= lastMonthEnd) timeCounts.lastMonth++;
+          const isClosed = ticket.status && ticket.status.toLowerCase().includes('clos');
+          
+          const increment = (key) => {
+            stats[key].total++;
+            if (isClosed) stats[key].closed++; else stats[key].open++;
+          };
 
-          const deptName = ticket.department ? ticket.department.name : 'General';
-          deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
+          if (tDate >= today) increment('today');
+          if (tDate >= yesterday && tDate < today) increment('yesterday');
+          if (tDate >= last7Days) increment('last7');
+          if (tDate >= currentWeek) increment('currentWeek');
+          if (tDate >= lastWeekStart && tDate < lastWeekEnd) increment('lastWeek');
+          if (tDate >= last30Days) increment('last30');
+          if (tDate >= currentMonth) increment('currentMonth');
+          if (tDate >= lastMonthStart && tDate <= lastMonthEnd) increment('lastMonth');
 
-          const priority = ticket.priority || 'None';
-          if (priorityCounts[priority] !== undefined) priorityCounts[priority]++;
+          // Only open tickets for Dept & Priority counts (standard behavior)
+          if (!isClosed) {
+            const deptName = ticket.department ? ticket.department.name : 'General';
+            deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
+            const priority = ticket.priority || 'None';
+            priorityCounts[priority] = (priorityCounts[priority] || 0) + 1;
+          }
         });
+
+        const openTicketsOnly = tickets.filter(t => !(t.status && t.status.toLowerCase().includes('clos')));
 
         let html = `
           <div class="dashboard-grid animate-in delay-1" style="margin-bottom: 30px;">
             <a href="tickets.html?filter=all" class="metric-card glass-panel total-card">
-              <h3>Total Open Tickets (All Time)</h3>
-              <p>${tickets.length}</p>
+              <h3>Total Open Tickets (Current Backlog)</h3>
+              <p>${openTicketsOnly.length}</p>
             </a>
           </div>
 
-          <div class="section-title animate-in delay-1">Ticket Volumes</div>
+          <div class="section-title animate-in delay-1">Ticket Stats (All Open & Closed)</div>
           <div class="dashboard-grid animate-in delay-2">
-            <a href="tickets.html?filter=timeframe&value=today" class="metric-card glass-panel"><h3>Today</h3><p>${timeCounts.today}</p></a>
-            <a href="tickets.html?filter=timeframe&value=yesterday" class="metric-card glass-panel"><h3>Yesterday</h3><p>${timeCounts.yesterday}</p></a>
-            <a href="tickets.html?filter=timeframe&value=currentWeek" class="metric-card glass-panel"><h3>This Week</h3><p>${timeCounts.currentWeek}</p></a>
-            <a href="tickets.html?filter=timeframe&value=lastWeek" class="metric-card glass-panel"><h3>Last Week</h3><p>${timeCounts.lastWeek}</p></a>
-            <a href="tickets.html?filter=timeframe&value=last7" class="metric-card glass-panel"><h3>Last 7 Days</h3><p>${timeCounts.last7}</p></a>
-            <a href="tickets.html?filter=timeframe&value=currentMonth" class="metric-card glass-panel"><h3>This Month</h3><p>${timeCounts.currentMonth}</p></a>
-            <a href="tickets.html?filter=timeframe&value=lastMonth" class="metric-card glass-panel"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
-            <a href="tickets.html?filter=timeframe&value=last30" class="metric-card glass-panel"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
+            ${createStatCard('Today', 'today', stats.today)}
+            ${createStatCard('Yesterday', 'yesterday', stats.yesterday)}
+            ${createStatCard('This Week', 'currentWeek', stats.currentWeek)}
+            ${createStatCard('Last Week', 'lastWeek', stats.lastWeek)}
+            ${createStatCard('Last 7 Days', 'last7', stats.last7)}
+            ${createStatCard('This Month', 'currentMonth', stats.currentMonth)}
+            ${createStatCard('Last Month', 'lastMonth', stats.lastMonth)}
+            ${createStatCard('Last 30 Days', 'last30', stats.last30)}
           </div>
 
-          <div class="section-title animate-in delay-2">By Priority</div>
+          <div class="section-title animate-in delay-2">Open Tickets By Priority</div>
           <div class="dashboard-grid animate-in delay-3">
         `;
+        
         Object.entries(priorityCounts).forEach(([priority, count]) => {
           if (count > 0) {
-            const color = (priority === 'Critical' || priority === 'Urgent') ? 'var(--priority-high)' : '#f59e0b';
-            html += `<a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" class="metric-card glass-panel"><div><span class="priority-badge" style="background-color: ${color};">${priority}</span></div><p>${count}</p></a>`;
+            let bgColor = '#94a3b8'; // Default
+            let textColor = '#ffffff';
+            const p = priority.toLowerCase();
+            
+            if (p.includes('low')) { bgColor = '#86efac'; textColor = '#0f172a'; } // Light Green
+            else if (p.includes('medium')) { bgColor = '#fde047'; textColor = '#0f172a'; } // Yellow
+            else if (p.includes('high')) { bgColor = '#f97316'; textColor = '#ffffff'; } // Orange
+            else if (p.includes('urgent')) { bgColor = '#fca5a5'; textColor = '#0f172a'; } // Light Red
+            else if (p.includes('critical')) { bgColor = '#ef4444'; textColor = '#ffffff'; } // Red
+
+            html += `<a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" class="metric-card glass-panel"><div><span class="priority-badge" style="background-color: ${bgColor}; color: ${textColor};">${priority}</span></div><p>${count}</p></a>`;
           }
         });
-        html += `</div><div class="section-title animate-in delay-3">By Department</div><div class="dashboard-grid animate-in delay-3">`;
+        
+        html += `</div><div class="section-title animate-in delay-3">Open Tickets By Department</div><div class="dashboard-grid animate-in delay-3">`;
         Object.entries(deptCounts).forEach(([dept, count]) => {
           html += `<a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" class="metric-card glass-panel"><h3>${dept}</h3><p>${count}</p></a>`;
         });
@@ -402,7 +379,7 @@
     }
 
     initTheme();
-    checkSession(); // Ensure session is checked on page load
+    checkSession();
   </script>
 </body>
 </html>
