@@ -7,6 +7,10 @@
   
   <link rel="icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Flatpickr (Modern Date Picker) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
   <script>
     if (sessionStorage.getItem('auth_session') !== 'active') {
@@ -28,7 +32,6 @@
       --input-bg: rgba(15, 23, 42, 0.6);
       --row-hover: rgba(255, 255, 255, 0.05);
       --th-bg: rgba(15, 23, 42, 0.4);
-      --calendar-scheme: dark;
     }
     
     body.light-mode {
@@ -44,7 +47,6 @@
       --input-bg: rgba(255, 255, 255, 0.8);
       --row-hover: rgba(0, 0, 0, 0.02);
       --th-bg: rgba(255, 255, 255, 0.4);
-      --calendar-scheme: light;
     }
 
     body {
@@ -113,13 +115,32 @@
     .filter-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
     .filter-group label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
     
-    /* Modern Date Pickers */
-    .filter-group input[type="date"] {
+    .filter-group input[type="text"] {
       background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border);
       padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; height: 40px; box-sizing: border-box;
-      outline: none; font-family: inherit; transition: all 0.3s; cursor: pointer; color-scheme: var(--calendar-scheme);
+      outline: none; font-family: inherit; transition: all 0.3s; cursor: pointer;
     }
-    .filter-group input[type="date"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+    .filter-group input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+
+    /* Modern Glassmorphism Date Picker (Flatpickr Override) */
+    .flatpickr-calendar {
+      background: var(--dropdown-bg) !important; backdrop-filter: blur(24px) !important; -webkit-backdrop-filter: blur(24px) !important;
+      border: 1px solid var(--glass-border) !important; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5) !important;
+      border-radius: 16px !important; color: var(--text-main) !important; font-family: inherit !important;
+    }
+    .flatpickr-day { color: var(--text-main) !important; border-radius: 8px !important; }
+    .flatpickr-day:hover, .flatpickr-day:focus { background: var(--row-hover) !important; border-color: transparent !important;}
+    .flatpickr-day.selected { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; font-weight: 600; }
+    .flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover { color: var(--text-muted) !important; }
+    .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: var(--text-muted) !important; opacity: 0.5; }
+    .flatpickr-month, .flatpickr-weekday { color: var(--text-main) !important; fill: var(--text-main) !important; }
+    .flatpickr-current-month .flatpickr-monthDropdown-months { background: transparent !important; color: var(--text-main) !important; font-weight: 600 !important; }
+    .flatpickr-current-month .flatpickr-monthDropdown-months option { color: #000 !important; }
+    .flatpickr-current-month input.cur-year { color: var(--text-main) !important; font-weight: 600 !important; }
+    span.flatpickr-weekday { color: var(--text-muted) !important; font-weight: 600 !important; font-size: 0.8rem !important;}
+    .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after, .flatpickr-calendar.arrowBottom:before, .flatpickr-calendar.arrowBottom:after { display: none !important; }
+    .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: var(--text-main) !important; }
+    .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: var(--accent) !important; }
 
     .custom-select { position: relative; width: 160px; }
     .select-btn {
@@ -169,46 +190,61 @@
     .ticket-link { color: var(--accent); text-decoration: none; font-weight: 600; }
     .ticket-link:hover { text-decoration: underline; }
 
-    /* Refined Liquid Glass PIN Modal */
+    /* REDESIGNED Liquid Glass PIN Modal */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      background: rgba(2, 6, 23, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       z-index: 10000; display: none; align-items: center; justify-content: center;
     }
     .modal-content {
-      padding: 35px 30px; width: 90%; max-width: 360px; text-align: center;
-      background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(24px) saturate(150%);
-      border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.05);
-      border-radius: 24px;
+      padding: 45px 40px; width: 90%; max-width: 360px; text-align: center;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+      backdrop-filter: blur(30px) saturate(200%); -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border-radius: 32px;
     }
     body.light-mode .modal-content {
-      background: rgba(255, 255, 255, 0.7); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.5);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(241, 245, 249, 0.9));
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
-    .modal-content h3 { margin-top: 0; font-size: 1.3rem; margin-bottom: 8px; font-weight: 600; }
+    .modal-content h3 { margin-top: 0; font-size: 1.4rem; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.02em; }
+    
+    /* Sleek Apple-style Underline Input */
     .pin-input {
-      width: 100%; padding: 14px 16px; background-color: var(--input-bg); color: var(--text-main);
-      border: 1px solid var(--glass-border); border-radius: 12px; font-size: 1.2rem; letter-spacing: 6px; text-align: center;
-      margin-bottom: 25px; box-sizing: border-box; outline: none; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      width: 100%; background: transparent !important; border: none !important;
+      border-bottom: 2px solid var(--glass-border) !important; border-radius: 0 !important;
+      font-size: 2.5rem !important; letter-spacing: 16px !important; text-align: center !important;
+      color: var(--text-main) !important; box-shadow: none !important; padding: 10px 0 !important;
+      margin-bottom: 40px !important; font-weight: 500 !important; outline: none !important;
+      transition: all 0.3s ease !important;
     }
-    .pin-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15), inset 0 2px 4px rgba(0,0,0,0.1); transform: translateY(-1px); }
-    .modal-content .btn-action { flex: 1; display: inline-flex; justify-content: center; }
+    .pin-input:focus { border-bottom-color: var(--accent) !important; box-shadow: 0 15px 15px -15px var(--accent) !important; transform: translateY(-2px); }
+    .pin-input::placeholder { color: var(--text-muted); opacity: 0.3; font-size: 1.5rem; letter-spacing: 10px; vertical-align: middle; }
+    body.light-mode .pin-input { border-bottom-color: rgba(0,0,0,0.15) !important; }
+
+    .modal-content .btn-action { flex: 1; display: inline-flex; justify-content: center; padding: 14px 20px; border-radius: 12px;}
     .modal-content .btn-clear { background-color: transparent; border: 1px solid var(--glass-border); color: var(--text-main); }
-    .modal-content .btn-clear:hover { background-color: rgba(255,255,255,0.1); }
+    .modal-content .btn-clear:hover { background-color: rgba(255,255,255,0.1); transform: translateY(-2px);}
     .modal-content .btn-export { background-color: var(--accent); }
-    .modal-content .btn-export:hover { background-color: var(--accent-hover); box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
+    .modal-content .btn-export:hover { background-color: var(--accent-hover); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4); transform: translateY(-2px); }
     
     footer { text-align: center; padding: 30px 0 10px 0; color: var(--text-muted); font-size: 0.8rem; margin-top: auto; }
   </style>
 </head>
 <body>
 
-  <!-- PIN Modal -->
+  <!-- Upgraded PIN Modal -->
   <div id="pinModal" class="modal-overlay">
     <div class="modal-content animate-in">
+      <div style="width: 56px; height: 56px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);">
+        <svg width="28" height="28" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      </div>
       <h3>Admin Access</h3>
-      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Enter security PIN to force live data sync</p>
-      <input type="password" id="pinInput" class="pin-input" placeholder="•••••">
-      <div style="display: flex; gap: 12px; justify-content: center;">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Enter security PIN to force live data sync</p>
+      
+      <input type="password" id="pinInput" class="pin-input" placeholder="•••••" maxlength="5" autocomplete="off">
+      
+      <div style="display: flex; gap: 15px; justify-content: center;">
         <button class="btn-action btn-clear" onclick="closePinModal()">Cancel</button>
         <button class="btn-action btn-export" id="submitPinBtn">Authenticate</button>
       </div>
@@ -240,11 +276,12 @@
   <div class="controls-panel glass-panel animate-in">
     <div class="filter-group">
       <label>Start Date</label>
-      <input type="date" id="dateStart" onchange="applyLocalFilters()">
+      <!-- Changed to text so native browser UI doesn't pop up over Flatpickr -->
+      <input type="text" id="dateStart" placeholder="Select Date...">
     </div>
     <div class="filter-group">
       <label>End Date</label>
-      <input type="date" id="dateEnd" onchange="applyLocalFilters()">
+      <input type="text" id="dateEnd" placeholder="Select Date...">
     </div>
 
     <div class="filter-group">
@@ -321,6 +358,29 @@
   <script>
     // 🔴 IMPORTANT: PASTE YOUR GOOGLE WEB APP URL HERE
     const PROXY_URL = 'https://script.google.com/macros/s/AKfycbxQM4srD1CF0Zj63_CTwBraMp31MyWC1j9RRHoIe9d_RiVmROrYwI-9dO7NNgfa1fe5/exec'; 
+
+    // --- EASTERN TIME UTILITIES ---
+    // Forces midnight boundary checks to US Eastern Time (handling DST/EST shifts)
+    function getMidnightET(year, month, day) {
+      const shiftM = String(month).padStart(2, '0');
+      const shiftD = String(day).padStart(2, '0');
+      const t4 = new Date(`${year}-${shiftM}-${shiftD}T00:00:00-04:00`);
+      const t5 = new Date(`${year}-${shiftM}-${shiftD}T00:00:00-05:00`);
+      const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false });
+      const h4 = fmt.format(t4);
+      return (h4 === '24' || h4 === '0' || h4 === '00') ? t4 : t5;
+    }
+
+    function getETMidnightForOffset(daysOffset) {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'}).formatToParts(now);
+      const y = parseInt(parts.find(p=>p.type==='year').value, 10);
+      const m = parseInt(parts.find(p=>p.type==='month').value, 10) - 1; 
+      const d = parseInt(parts.find(p=>p.type==='day').value, 10);
+      const dummy = new Date(Date.UTC(y, m, d + daysOffset));
+      return getMidnightET(dummy.getUTCFullYear(), dummy.getUTCMonth() + 1, dummy.getUTCDate());
+    }
+    // ------------------------------
 
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
@@ -439,42 +499,40 @@
         } else if (filterType === 'department') {
           globalTickets = allTickets.filter(t => (t.department ? t.department.name : 'General') === filterValue);
         } else if (filterType === 'timeframe') {
-          const today = new Date(); today.setHours(0,0,0,0);
+          
+          // Calculate exact Eastern Time boundaries
+          const today = getETMidnightForOffset(0);
+          const yesterday = getETMidnightForOffset(-1);
+          const last7Days = getETMidnightForOffset(-7);
+          const last30Days = getETMidnightForOffset(-30);
+          
+          const weekdayFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(new Date());
+          const daysMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+          const currentWeekOffset = -daysMap[weekdayFmt];
+          const currentWeek = getETMidnightForOffset(currentWeekOffset);
+          const lastWeekStart = getETMidnightForOffset(currentWeekOffset - 7);
+          const lastWeekEnd = currentWeek;
+
+          const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit'}).formatToParts(new Date());
+          const curY = parseInt(parts.find(p=>p.type==='year').value, 10);
+          const curM = parseInt(parts.find(p=>p.type==='month').value, 10);
+          const currentMonth = getMidnightET(curY, curM, 1);
+          const lastMonthStart = getMidnightET(curM === 1 ? curY - 1 : curY, curM === 1 ? 12 : curM - 1, 1);
+          const lastMonthEnd = currentMonth;
+
           globalTickets = allTickets.filter(t => {
             const tDate = new Date(t.createdTime);
             if (filterValue === 'today') return tDate >= today;
-            if (filterValue === 'yesterday') {
-              const yest = new Date(today); yest.setDate(yest.getDate() - 1);
-              return tDate >= yest && tDate < today;
-            }
-            if (filterValue === 'last7') {
-              const l7 = new Date(today); l7.setDate(l7.getDate() - 7);
-              return tDate >= l7;
-            }
-            if (filterValue === 'currentWeek') {
-              const cw = new Date(today); cw.setDate(cw.getDate() - (cw.getDay() || 7) + 1);
-              return tDate >= cw;
-            }
-            if (filterValue === 'lastWeek') {
-              const cw = new Date(today); cw.setDate(cw.getDate() - (cw.getDay() || 7) + 1);
-              const lw = new Date(cw); lw.setDate(lw.getDate() - 7);
-              return tDate >= lw && tDate < cw;
-            }
-            if (filterValue === 'last30') {
-              const l30 = new Date(today); l30.setDate(l30.getDate() - 30);
-              return tDate >= l30;
-            }
-            if (filterValue === 'currentMonth') {
-              const cm = new Date(today.getFullYear(), today.getMonth(), 1);
-              return tDate >= cm;
-            }
-            if (filterValue === 'lastMonth') {
-              const lmStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-              const lmEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
-              return tDate >= lmStart && tDate <= lmEnd;
-            }
+            if (filterValue === 'yesterday') return tDate >= yesterday && tDate < today;
+            if (filterValue === 'last7') return tDate >= last7Days;
+            if (filterValue === 'currentWeek') return tDate >= currentWeek;
+            if (filterValue === 'lastWeek') return tDate >= lastWeekStart && tDate < lastWeekEnd;
+            if (filterValue === 'last30') return tDate >= last30Days;
+            if (filterValue === 'currentMonth') return tDate >= currentMonth;
+            if (filterValue === 'lastMonth') return tDate >= lastMonthStart && tDate < lastMonthEnd;
             return true;
           });
+          
           const titles = { today: "Today's", yesterday: "Yesterday's", last7: "Last 7 Days", currentWeek: "This Week's", lastWeek: "Last Week's", last30: "Last 30 Days", currentMonth: "This Month's", lastMonth: "Last Month's" };
           document.getElementById('pageTitle').innerHTML = `<img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo"> ${titles[filterValue] || filterValue} Tickets`;
         } else {
@@ -552,8 +610,18 @@
         const passStatus = selStatuses.length === 0 || selStatuses.includes(status);
 
         let passDate = true;
-        if (dateStart) { const startD = new Date(dateStart + 'T00:00:00'); passDate = passDate && (createdDate >= startD); }
-        if (dateEnd) { const endD = new Date(dateEnd + 'T23:59:59'); passDate = passDate && (createdDate <= endD); }
+        // Fix Date Picker to use Eastern Time boundaries
+        if (dateStart) { 
+          const [sy, sm, sd] = dateStart.split('-');
+          passDate = passDate && (createdDate >= getMidnightET(sy, sm, sd)); 
+        }
+        if (dateEnd) { 
+          const [ey, em, ed] = dateEnd.split('-');
+          // End boundary safely placed exactly 24 hours (minus 1 ms) past the target date's midnight
+          const endMidnight = getMidnightET(ey, em, ed);
+          const endD = new Date(endMidnight.getTime() + 86399999);
+          passDate = passDate && (createdDate <= endD); 
+        }
 
         return passClient && passAssignee && passPriority && passStatus && passDate;
       });
@@ -562,7 +630,8 @@
     }
 
     function clearFilters() {
-      document.getElementById('dateStart').value = ''; document.getElementById('dateEnd').value = '';
+      document.getElementById('dateStart')._flatpickr.clear(); 
+      document.getElementById('dateEnd')._flatpickr.clear();
       document.querySelectorAll('.select-dropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
       applyLocalFilters();
     }
@@ -576,12 +645,18 @@
          return;
       }
 
+      // Format table dates to display in ET
+      const tableDateFormatter = new Intl.DateTimeFormat('en-US', { 
+        timeZone: 'America/New_York', month: 'numeric', day: 'numeric', year: 'numeric' 
+      });
+
       ticketsToRender.forEach((ticket, index) => {
         const clientName = getClientName(ticket);
         const deptName = ticket.department ? ticket.department.name : 'General';
         const priority = ticket.priority || '-';
         const assigneeName = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : 'Unassigned';
-        const createdDate = ticket.createdTime ? new Date(ticket.createdTime).toLocaleDateString() : '-';
+        
+        const createdDate = ticket.createdTime ? tableDateFormatter.format(new Date(ticket.createdTime)) : '-';
         const deskDirectUrl = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
 
         let bgColor = '#94a3b8'; let textColor = '#ffffff';
@@ -617,6 +692,11 @@
 
     function exportToCSV() {
       let csvContent = "\uFEFFTicket #,Subject,Client Name,Priority,Department,Assignee,Status,Created Date,Ticket Link\n";
+      
+      const tableDateFormatter = new Intl.DateTimeFormat('en-US', { 
+        timeZone: 'America/New_York', month: 'numeric', day: 'numeric', year: 'numeric' 
+      });
+
       currentFilteredTickets.forEach(ticket => {
         const tNum = ticket.ticketNumber || "";
         const subj = `"${(ticket.subject || "").replace(/"/g, '""')}"`;
@@ -625,10 +705,13 @@
         const dept = ticket.department ? ticket.department.name : "General";
         const assignee = ticket.assignee ? `${ticket.assignee.firstName || ''} ${ticket.assignee.lastName || ''}`.trim() : "Unassigned";
         const status = ticket.status || "";
-        const cDate = ticket.createdTime ? new Date(ticket.createdTime).toLocaleDateString() : "";
+        
+        const cDate = ticket.createdTime ? tableDateFormatter.format(new Date(ticket.createdTime)) : "";
         const link = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${ticket.id}`;
+        
         csvContent += `${tNum},${subj},${client},${prio},${dept},${assignee},${status},${cDate},${link}\n`;
       });
+      
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -640,8 +723,21 @@
       URL.revokeObjectURL(url); 
     }
 
+    // Initialize UI and Data
     initTheme();
     init();
+
+    // Initialize Modern Date Pickers
+    flatpickr("#dateStart", { 
+      dateFormat: "Y-m-d", 
+      onChange: applyLocalFilters,
+      disableMobile: true // Forces the glassmorphism UI even on phones
+    });
+    flatpickr("#dateEnd", { 
+      dateFormat: "Y-m-d", 
+      onChange: applyLocalFilters,
+      disableMobile: true
+    });
   </script>
 </body>
 </html>

@@ -136,46 +136,61 @@
     
     .priority-badge { display: inline-block; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
 
-    /* Refined Liquid Glass PIN Modal */
+    /* REDESIGNED Liquid Glass PIN Modal */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      background: rgba(2, 6, 23, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       z-index: 10000; display: none; align-items: center; justify-content: center;
     }
     .modal-content {
-      padding: 35px 30px; width: 90%; max-width: 360px; text-align: center;
-      background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(24px) saturate(150%);
-      border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.05);
-      border-radius: 24px;
+      padding: 45px 40px; width: 90%; max-width: 360px; text-align: center;
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+      backdrop-filter: blur(30px) saturate(200%); -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border-radius: 32px;
     }
     body.light-mode .modal-content {
-      background: rgba(255, 255, 255, 0.7); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.5);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(241, 245, 249, 0.9));
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
-    .modal-content h3 { margin-top: 0; font-size: 1.3rem; margin-bottom: 8px; font-weight: 600; }
+    .modal-content h3 { margin-top: 0; font-size: 1.4rem; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.02em; }
+    
+    /* Sleek Apple-style Underline Input */
     .pin-input {
-      width: 100%; padding: 14px 16px; background-color: var(--input-bg); color: var(--text-main);
-      border: 1px solid var(--glass-border); border-radius: 12px; font-size: 1.2rem; letter-spacing: 6px; text-align: center;
-      margin-bottom: 25px; box-sizing: border-box; outline: none; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      width: 100%; background: transparent !important; border: none !important;
+      border-bottom: 2px solid var(--glass-border) !important; border-radius: 0 !important;
+      font-size: 2.5rem !important; letter-spacing: 16px !important; text-align: center !important;
+      color: var(--text-main) !important; box-shadow: none !important; padding: 10px 0 !important;
+      margin-bottom: 40px !important; font-weight: 500 !important; outline: none !important;
+      transition: all 0.3s ease !important;
     }
-    .pin-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15), inset 0 2px 4px rgba(0,0,0,0.1); transform: translateY(-1px); }
-    .btn-action { color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-family: inherit; transition: all 0.3s; flex: 1; }
+    .pin-input:focus { border-bottom-color: var(--accent) !important; box-shadow: 0 15px 15px -15px var(--accent) !important; transform: translateY(-2px); }
+    .pin-input::placeholder { color: var(--text-muted); opacity: 0.3; font-size: 1.5rem; letter-spacing: 10px; vertical-align: middle; }
+    body.light-mode .pin-input { border-bottom-color: rgba(0,0,0,0.15) !important; }
+
+    .btn-action { color: white; border: none; padding: 14px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; font-family: inherit; transition: all 0.3s; flex: 1; }
     .btn-export { background-color: var(--accent); }
-    .btn-export:hover { background-color: var(--accent-hover); box-shadow: 0 5px 15px rgba(2, 132, 199, 0.3); }
+    .btn-export:hover { background-color: var(--accent-hover); box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4); transform: translateY(-2px); }
     .btn-clear { background-color: transparent; border: 1px solid var(--glass-border); color: var(--text-main); }
-    .btn-clear:hover { background-color: rgba(255,255,255,0.1); }
+    .btn-clear:hover { background-color: rgba(255,255,255,0.1); transform: translateY(-2px); }
 
     footer { text-align: center; padding: 30px 0 10px 0; color: var(--text-muted); font-size: 0.8rem; margin-top: auto; }
   </style>
 </head>
 <body>
 
-  <!-- PIN Modal -->
+  <!-- Upgraded PIN Modal -->
   <div id="pinModal" class="modal-overlay">
     <div class="modal-content animate-in">
+      <div style="width: 56px; height: 56px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);">
+        <svg width="28" height="28" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      </div>
       <h3>Admin Access</h3>
-      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Enter security PIN to force live data sync</p>
-      <input type="password" id="pinInput" class="pin-input" placeholder="•••••">
-      <div style="display: flex; gap: 12px; justify-content: center;">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">Enter security PIN to force live data sync</p>
+      
+      <input type="password" id="pinInput" class="pin-input" placeholder="•••••" maxlength="5" autocomplete="off">
+      
+      <div style="display: flex; gap: 15px; justify-content: center;">
         <button class="btn-action btn-clear" onclick="closePinModal()">Cancel</button>
         <button class="btn-action btn-export" id="submitPinBtn">Authenticate</button>
       </div>
@@ -245,6 +260,30 @@
 
     // Global variable to hold data for Alt+C shortcut
     window.allTicketsData = null;
+
+    // --- EASTERN TIME UTILITIES ---
+    // Forces midnight boundary checks to US Eastern Time (handling DST/EST shifts)
+    function getMidnightET(year, month, day) {
+      const shiftM = String(month).padStart(2, '0');
+      const shiftD = String(day).padStart(2, '0');
+      const t4 = new Date(`${year}-${shiftM}-${shiftD}T00:00:00-04:00`);
+      const t5 = new Date(`${year}-${shiftM}-${shiftD}T00:00:00-05:00`);
+      const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false });
+      const h4 = fmt.format(t4);
+      return (h4 === '24' || h4 === '0' || h4 === '00') ? t4 : t5;
+    }
+
+    function getETMidnightForOffset(daysOffset) {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'}).formatToParts(now);
+      const y = parseInt(parts.find(p=>p.type==='year').value, 10);
+      const m = parseInt(parts.find(p=>p.type==='month').value, 10) - 1; 
+      const d = parseInt(parts.find(p=>p.type==='day').value, 10);
+      
+      const dummy = new Date(Date.UTC(y, m, d + daysOffset));
+      return getMidnightET(dummy.getUTCFullYear(), dummy.getUTCMonth() + 1, dummy.getUTCDate());
+    }
+    // ------------------------------
 
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
@@ -370,8 +409,9 @@
 
     // --- HIDDEN ALT+C FUNCTION ---
     function copyMatrixToClipboard() {
-      const today = new Date(); today.setHours(0,0,0,0);
-      const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+      // Calculate based on exact US Eastern Time boundaries
+      const today = getETMidnightForOffset(0);
+      const yesterday = getETMidnightForOffset(-1);
 
       const trackingDepts = [
         "Support", "Services", "Development", "Production", 
@@ -412,7 +452,7 @@
       copyString = copyString.replace(/\t$/, '');
 
       navigator.clipboard.writeText(copyString).then(() => {
-        alert("✅ Daily Metrics copied to clipboard!\nReady to paste into Excel.");
+        alert("✅ Daily Metrics (Eastern Time) copied to clipboard!\nReady to paste into Excel.");
       }).catch(err => alert("Copy failed: " + err));
     }
     // -----------------------
@@ -447,16 +487,26 @@
         const tickets = result.data || [];
         window.allTicketsData = tickets; // Save globally for Alt+C hook
         
-        const today = new Date(); today.setHours(0,0,0,0);
-        const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-        const last7Days = new Date(today); last7Days.setDate(last7Days.getDate() - 7);
-        const currentWeek = new Date(today); currentWeek.setDate(currentWeek.getDate() - (currentWeek.getDay() || 7) + 1);
-        const lastWeekStart = new Date(currentWeek); lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-        const lastWeekEnd = new Date(currentWeek);
-        const last30Days = new Date(today); last30Days.setDate(last30Days.getDate() - 30);
-        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
+        // --- US Eastern Time Boundaries ---
+        const today = getETMidnightForOffset(0);
+        const yesterday = getETMidnightForOffset(-1);
+        const last7Days = getETMidnightForOffset(-7);
+        const last30Days = getETMidnightForOffset(-30);
+
+        const weekdayFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(new Date());
+        const daysMap = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+        const currentWeekOffset = -daysMap[weekdayFmt];
+        const currentWeek = getETMidnightForOffset(currentWeekOffset);
+        const lastWeekStart = getETMidnightForOffset(currentWeekOffset - 7);
+        const lastWeekEnd = currentWeek;
+
+        const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit'}).formatToParts(new Date());
+        const curY = parseInt(parts.find(p=>p.type==='year').value, 10);
+        const curM = parseInt(parts.find(p=>p.type==='month').value, 10);
+        const currentMonth = getMidnightET(curY, curM, 1);
+        const lastMonthStart = getMidnightET(curM === 1 ? curY - 1 : curY, curM === 1 ? 12 : curM - 1, 1);
+        const lastMonthEnd = currentMonth;
+        // ----------------------------------
 
         const timeCounts = { today: 0, yesterday: 0, last7: 0, currentWeek: 0, lastWeek: 0, last30: 0, currentMonth: 0, lastMonth: 0 };
         const stats = {
@@ -486,7 +536,7 @@
           if (tDate >= lastWeekStart && tDate < lastWeekEnd) increment('lastWeek');
           if (tDate >= last30Days) increment('last30');
           if (tDate >= currentMonth) increment('currentMonth');
-          if (tDate >= lastMonthStart && tDate <= lastMonthEnd) increment('lastMonth');
+          if (tDate >= lastMonthStart && tDate < lastMonthEnd) increment('lastMonth');
 
           if (!isClosed) {
             const deptName = ticket.department ? ticket.department.name : 'General';
