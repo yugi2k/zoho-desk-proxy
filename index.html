@@ -268,13 +268,28 @@
       const stats = {};
       trackingDepts.forEach(d => stats[d] = { totalOpen: 0, yesterdayNew: 0, yesterdayClosed: 0 });
 
-        window.allTicketsData.forEach(t => {
-        const dName = t.department ? t.department.name : 'General';
+// 1. EXACT STATUS MAPPING
+      // Add or remove statuses here to perfectly match what your Zoho UI considers "Backlog"
+      const backlogStatuses = [
+        "open", "review", "in progress", "pending", 
+        "awaiting response", "on hold", "working on it", 
+        "releasepending", "recurrence"
+      ];
+      
+      // Define exactly what counts as "Closed"
+      const closedStatuses = [
+        "closed/resolved", "closed/unresolved", 
+        "temp closed (review)", "temp-closed (wip)"
+      ];
+
+      window.allTicketsData.forEach(t => {
+        const dName = t.department ? t.department.name.trim() : 'General';
         
-        // Use Zoho's exact system classifications
-        const sType = t.statusType ? t.statusType.toLowerCase() : '';
-        const isOpen = (sType === 'open');
-        const isClosed = (sType === 'closed');
+        // Convert status to lowercase for safe matching
+        const status = t.status ? t.status.toLowerCase().trim() : '';
+        
+        const isOpen = backlogStatuses.includes(status);
+        const isClosed = closedStatuses.includes(status);
         
         const createdDate = new Date(t.createdTime);
         const closedDate = t.closedTime ? new Date(t.closedTime) : (isClosed && t.modifiedTime ? new Date(t.modifiedTime) : null);
@@ -282,17 +297,17 @@
         const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
         if (matchedDept) {
           
-          // 1. Backlog (STRICTLY matching Zoho's 'Open' statusType)
+          // Total Backlog Snapshot
           if (isOpen) {
             stats[matchedDept].totalOpen++;
           }
           
-          // 2. Yesterday New
+          // Yesterday New (Strictly EST)
           if (createdDate >= yesterday && createdDate < today) {
             stats[matchedDept].yesterdayNew++;
           }
           
-          // 3. Yesterday Closed
+          // Yesterday Closed (Strictly EST)
           if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
             stats[matchedDept].yesterdayClosed++;
           }
@@ -484,13 +499,13 @@
             else if (p.includes('urgent')) { bgColor = '#fca5a5'; textColor = '#0f172a'; } 
             else if (p.includes('critical')) { bgColor = '#ef4444'; textColor = '#ffffff'; } 
 
-            html += `<a href="tickets.html?filter=priority&value=${encodeURIComponent(priority)}" class="metric-card glass-panel"><div><span class="priority-badge" style="background-color: ${bgColor}; color: ${textColor};">${priority}</span></div><p>${count}</p></a>`;
+            html += `<a href="tickets?filter=priority&value=${encodeURIComponent(priority)}" class="metric-card glass-panel"><div><span class="priority-badge" style="background-color: ${bgColor}; color: ${textColor};">${priority}</span></div><p>${count}</p></a>`;
           }
         });
         
         html += `</div><div class="section-title animate-in delay-3">Open Tickets By Department</div><div class="dashboard-grid animate-in delay-3" style="margin-bottom: 20px;">`;
         Object.entries(deptCounts).forEach(([dept, count]) => {
-          html += `<a href="tickets.html?filter=department&value=${encodeURIComponent(dept)}" class="metric-card glass-panel"><h3>${dept}</h3><p>${count}</p></a>`;
+          html += `<a href="tickets?filter=department&value=${encodeURIComponent(dept)}" class="metric-card glass-panel"><h3>${dept}</h3><p>${count}</p></a>`;
         });
         html += `</div>`;
         
