@@ -342,7 +342,23 @@
         
         const tickets = result.data || [];
         window.allTicketsData = tickets; // Save globally for Alt+C hook
-        sessionStorage.setItem('zoho_tickets_cache', JSON.stringify(tickets)); // Saves data for the Agents page!
+        
+        // TRIM THE FAT: Strip away heavy, unneeded Zoho fields so it easily fits under the browser's 5MB limit
+        const slimTickets = tickets.map(t => ({
+          id: t.id,
+          ticketNumber: t.ticketNumber,
+          subject: t.subject,
+          status: t.status,
+          statusType: t.statusType,
+          priority: t.priority,
+          department: t.department ? { name: t.department.name } : null,
+          assignee: t.assignee ? { firstName: t.assignee.firstName, lastName: t.assignee.lastName } : null,
+          createdTime: t.createdTime,
+          closedTime: t.closedTime,
+          modifiedTime: t.modifiedTime
+        }));
+        
+        sessionStorage.setItem('zoho_tickets_cache', JSON.stringify(slimTickets));
         
         // --- US Eastern Time Boundaries ---
         const today = getETMidnightForOffset(0);
