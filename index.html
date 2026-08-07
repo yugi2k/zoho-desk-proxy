@@ -253,7 +253,7 @@
       }
     });
 
-    // --- HIDDEN ALT+C FUNCTION ---
+// --- HIDDEN ALT+C FUNCTION ---
     function copyMatrixToClipboard() {
       // Calculate based on exact US Eastern Time boundaries
       const today = getETMidnightForOffset(0);
@@ -268,23 +268,30 @@
       const stats = {};
       trackingDepts.forEach(d => stats[d] = { totalOpen: 0, yesterdayNew: 0, yesterdayClosed: 0 });
 
+      // 1. ADDED: A broader list to catch all possible closed/resolved statuses
+      const closedStatusKeywords = ['clos', 'resolv', 'cancel', 'complet'];
+
       window.allTicketsData.forEach(t => {
         const dName = t.department ? t.department.name : 'General';
         const status = t.status ? t.status.toLowerCase() : '';
-        const isClosed = status.includes('close');
+        
+        // 2. ADDED: Checks if the status contains ANY of the closed keywords
+        const isClosed = closedStatusKeywords.some(keyword => status.includes(keyword));
         
         const createdDate = new Date(t.createdTime);
-        const closedDate = t.closedTime ? new Date(t.closedTime) : null;
+        
+        // 3. ADDED: If Zoho didn't provide a closedTime, but the ticket IS closed, fallback to modifiedTime
+        const closedDate = t.closedTime ? new Date(t.closedTime) : (isClosed && t.modifiedTime ? new Date(t.modifiedTime) : null);
 
         const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
         if (matchedDept) {
-          // Total backlog (open tickets all time)
+          // Total backlog
           if (!isClosed) stats[matchedDept].totalOpen++;
           
-          // Yesterday New (Created yesterday)
+          // Yesterday New
           if (createdDate >= yesterday && createdDate < today) stats[matchedDept].yesterdayNew++;
           
-          // Yesterday Closed (Physically closed yesterday)
+          // Yesterday Closed (Strict Eastern Time boundaries)
           if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
             stats[matchedDept].yesterdayClosed++;
           }
