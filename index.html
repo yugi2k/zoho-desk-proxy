@@ -255,7 +255,7 @@
 
 // --- HIDDEN ALT+C FUNCTION ---
     function copyMatrixToClipboard() {
-      // Calculate based on exact US Eastern Time boundaries
+      // Calculate based on exact US Eastern Time (EST) boundaries
       const today = getETMidnightForOffset(0);
       const yesterday = getETMidnightForOffset(-1);
 
@@ -268,30 +268,31 @@
       const stats = {};
       trackingDepts.forEach(d => stats[d] = { totalOpen: 0, yesterdayNew: 0, yesterdayClosed: 0 });
 
-      // 1. ADDED: A broader list to catch all possible closed/resolved statuses
-      const closedStatusKeywords = ['clos', 'resolv', 'cancel', 'complet'];
-
       window.allTicketsData.forEach(t => {
         const dName = t.department ? t.department.name : 'General';
         const status = t.status ? t.status.toLowerCase() : '';
         
-        // 2. ADDED: Checks if the status contains ANY of the closed keywords
-        const isClosed = closedStatusKeywords.some(keyword => status.includes(keyword));
+        // STRICT CHECK: Only match tickets that are officially "Closed"
+        const isClosed = status.includes('close'); 
         
         const createdDate = new Date(t.createdTime);
         
-        // 3. ADDED: If Zoho didn't provide a closedTime, but the ticket IS closed, fallback to modifiedTime
+        // SAFE FALLBACK: If closedTime is missing, use modifiedTime
         const closedDate = t.closedTime ? new Date(t.closedTime) : (isClosed && t.modifiedTime ? new Date(t.modifiedTime) : null);
 
         const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
         if (matchedDept) {
-          // Total backlog
-          if (!isClosed) stats[matchedDept].totalOpen++;
+          // 1. Backlog (Total Open - Anything not explicitly closed)
+          if (!isClosed) {
+            stats[matchedDept].totalOpen++;
+          }
           
-          // Yesterday New
-          if (createdDate >= yesterday && createdDate < today) stats[matchedDept].yesterdayNew++;
+          // 2. New Tickets (Created Yesterday in EST)
+          if (createdDate >= yesterday && createdDate < today) {
+            stats[matchedDept].yesterdayNew++;
+          }
           
-          // Yesterday Closed (Strict Eastern Time boundaries)
+          // 3. Closed Tickets (Closed Yesterday in EST)
           if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
             stats[matchedDept].yesterdayClosed++;
           }
@@ -307,7 +308,7 @@
       copyString = copyString.replace(/\t$/, '');
 
       navigator.clipboard.writeText(copyString).then(() => {
-        alert("✅ Daily Metrics (Eastern Time) copied to clipboard!\nReady to paste into Excel.");
+        alert("✅ Daily Metrics (EST) copied to clipboard!\nReady to paste into Excel.");
       }).catch(err => alert("Copy failed: " + err));
     }
     // -----------------------
