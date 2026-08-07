@@ -268,31 +268,31 @@
       const stats = {};
       trackingDepts.forEach(d => stats[d] = { totalOpen: 0, yesterdayNew: 0, yesterdayClosed: 0 });
 
-      window.allTicketsData.forEach(t => {
+        window.allTicketsData.forEach(t => {
         const dName = t.department ? t.department.name : 'General';
-        const status = t.status ? t.status.toLowerCase() : '';
         
-        // STRICT CHECK: Only match tickets that are officially "Closed"
-        const isClosed = status.includes('close'); 
+        // Use Zoho's exact system classifications
+        const sType = t.statusType ? t.statusType.toLowerCase() : '';
+        const isOpen = (sType === 'open');
+        const isClosed = (sType === 'closed');
         
         const createdDate = new Date(t.createdTime);
-        
-        // SAFE FALLBACK: If closedTime is missing, use modifiedTime
         const closedDate = t.closedTime ? new Date(t.closedTime) : (isClosed && t.modifiedTime ? new Date(t.modifiedTime) : null);
 
         const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
         if (matchedDept) {
-          // 1. Backlog (Total Open - Anything not explicitly closed)
-          if (!isClosed) {
+          
+          // 1. Backlog (STRICTLY matching Zoho's 'Open' statusType)
+          if (isOpen) {
             stats[matchedDept].totalOpen++;
           }
           
-          // 2. New Tickets (Created Yesterday in EST)
+          // 2. Yesterday New
           if (createdDate >= yesterday && createdDate < today) {
             stats[matchedDept].yesterdayNew++;
           }
           
-          // 3. Closed Tickets (Closed Yesterday in EST)
+          // 3. Yesterday Closed
           if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
             stats[matchedDept].yesterdayClosed++;
           }
