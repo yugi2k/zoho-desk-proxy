@@ -44,11 +44,11 @@
     
     <div class="header-actions">
       <!-- Reports Button -->
-      <a href="reports.html" class="icon-btn" data-tooltip="View Reports">
+      <a href="reports" class="icon-btn" data-tooltip="View Reports">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
       </a>
       <!-- Agents Button -->
-      <a href="agents.html" class="icon-btn" data-tooltip="View Agents">
+      <a href="agents" class="icon-btn" data-tooltip="View Agents">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
       </a>
       <!-- Theme Toggle -->
@@ -152,9 +152,8 @@
 
     function logout() {
       sessionStorage.removeItem('auth_session');
-      window.location.reload();
+      window.location.href = 'index';
     }
-
     function showDashboard() {
       sessionStorage.setItem('auth_session', 'active');
       document.getElementById('loginScreen').style.display = 'none';
@@ -204,7 +203,7 @@
 
     function createStatCard(title, filterValue, statObj) {
       return `
-        <a href="tickets.html?filter=timeframe&value=${filterValue}" class="metric-card glass-panel">
+        <a href="tickets?filter=timeframe&value=${filterValue}" class="metric-card glass-panel">
           <h3>${title}</h3>
           <p>${statObj.total}</p>
           <div class="stats-subtext">
@@ -417,7 +416,7 @@
 
         let html = `
           <div class="dashboard-grid animate-in delay-1" style="margin-bottom: 30px;">
-            <a href="tickets.html?filter=all" class="metric-card glass-panel total-card">
+            <a href="tickets?filter=all" class="metric-card glass-panel total-card">
               <h3>Total Open Tickets (Current Backlog)</h3>
               <p>${openTicketsOnly.length}</p>
             </a>
@@ -425,14 +424,14 @@
 
           <div class="section-title animate-in delay-1">Ticket Volumes (Open Only)</div>
           <div class="dashboard-grid animate-in delay-2" style="margin-bottom: 30px;">
-            <a href="tickets.html?filter=timeframe&value=today" class="metric-card glass-panel"><h3>Today</h3><p>${timeCounts.today}</p></a>
-            <a href="tickets.html?filter=timeframe&value=yesterday" class="metric-card glass-panel"><h3>Yesterday</h3><p>${timeCounts.yesterday}</p></a>
-            <a href="tickets.html?filter=timeframe&value=currentWeek" class="metric-card glass-panel"><h3>This Week</h3><p>${timeCounts.currentWeek}</p></a>
-            <a href="tickets.html?filter=timeframe&value=lastWeek" class="metric-card glass-panel"><h3>Last Week</h3><p>${timeCounts.lastWeek}</p></a>
-            <a href="tickets.html?filter=timeframe&value=last7" class="metric-card glass-panel"><h3>Last 7 Days</h3><p>${timeCounts.last7}</p></a>
-            <a href="tickets.html?filter=timeframe&value=currentMonth" class="metric-card glass-panel"><h3>This Month</h3><p>${timeCounts.currentMonth}</p></a>
-            <a href="tickets.html?filter=timeframe&value=lastMonth" class="metric-card glass-panel"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
-            <a href="tickets.html?filter=timeframe&value=last30" class="metric-card glass-panel"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
+            <a href="tickets?filter=timeframe&value=today" class="metric-card glass-panel"><h3>Today</h3><p>${timeCounts.today}</p></a>
+            <a href="tickets?filter=timeframe&value=yesterday" class="metric-card glass-panel"><h3>Yesterday</h3><p>${timeCounts.yesterday}</p></a>
+            <a href="tickets?filter=timeframe&value=currentWeek" class="metric-card glass-panel"><h3>This Week</h3><p>${timeCounts.currentWeek}</p></a>
+            <a href="tickets?filter=timeframe&value=lastWeek" class="metric-card glass-panel"><h3>Last Week</h3><p>${timeCounts.lastWeek}</p></a>
+            <a href="tickets?filter=timeframe&value=last7" class="metric-card glass-panel"><h3>Last 7 Days</h3><p>${timeCounts.last7}</p></a>
+            <a href="tickets?filter=timeframe&value=currentMonth" class="metric-card glass-panel"><h3>This Month</h3><p>${timeCounts.currentMonth}</p></a>
+            <a href="tickets?filter=timeframe&value=lastMonth" class="metric-card glass-panel"><h3>Last Month</h3><p>${timeCounts.lastMonth}</p></a>
+            <a href="tickets?filter=timeframe&value=last30" class="metric-card glass-panel"><h3>Last 30 Days</h3><p>${timeCounts.last30}</p></a>
           </div>
 
           <div class="section-title animate-in delay-1">Ticket Stats (All Open & Closed)</div>
