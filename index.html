@@ -256,18 +256,11 @@
 // --- HIDDEN ALT+C FUNCTION ---
 // --- HIDDEN ALT+C FUNCTION (Now using exact Zoho Dashboard API numbers) ---
     function copyMatrixToClipboard() {
-      // Retrieve the exactStats object we saved from the backend
-      const rawCache = sessionStorage.getItem('zoho_tickets_cache_raw');
-      if (!rawCache) {
-         alert("Data not fully loaded yet. Please wait a moment and try again.");
-         return;
-      }
-      
-      const parsedData = JSON.parse(rawCache);
-      const stats = parsedData.exactStats;
+      // Retrieve the exactStats object from global memory
+      const stats = window.exactStatsData;
       
       if (!stats) {
-         alert("Exact stats missing. Please hit Alt+R to force a fresh sync.");
+         alert("Exact stats missing. Please hit Alt+R to force a fresh sync (takes ~15s).");
          return;
       }
 
@@ -322,7 +315,7 @@
         
         const tickets = result.data || [];
         window.allTicketsData = tickets; // Save globally for Alt+C hook
-        sessionStorage.setItem('zoho_tickets_cache_raw', JSON.stringify(result));
+        window.exactStatsData = result.exactStats; // Save tiny object globally in RAM
         
         // TRIM THE FAT: Strip away heavy, unneeded Zoho fields so it easily fits under the browser's 5MB limit
         const slimTickets = tickets.map(t => ({
