@@ -254,10 +254,22 @@
     });
 
 // --- HIDDEN ALT+C FUNCTION ---
+// --- HIDDEN ALT+C FUNCTION (Now using exact Zoho Dashboard API numbers) ---
     function copyMatrixToClipboard() {
-      // Calculate based on exact US Eastern Time (EST) boundaries
-      const today = getETMidnightForOffset(0);
-      const yesterday = getETMidnightForOffset(-1);
+      // Retrieve the exactStats object we saved from the backend
+      const rawCache = sessionStorage.getItem('zoho_tickets_cache_raw');
+      if (!rawCache) {
+         alert("Data not fully loaded yet. Please wait a moment and try again.");
+         return;
+      }
+      
+      const parsedData = JSON.parse(rawCache);
+      const stats = parsedData.exactStats;
+      
+      if (!stats) {
+         alert("Exact stats missing. Please hit Alt+R to force a fresh sync.");
+         return;
+      }
 
       const trackingDepts = [
         "Support", "Services", "Development", "Production", 
@@ -265,68 +277,18 @@
         "Billing", "Concierge Services", "SalesHelp"
       ];
       
-      const stats = {};
-      trackingDepts.forEach(d => stats[d] = { totalOpen: 0, yesterdayNew: 0, yesterdayClosed: 0 });
-
-      // 1. EXACT STATUS MAPPING
-      // ONLY true "Open" statuses (Excludes On Hold, ReleasePending, and Recurrence)
-      const backlogStatuses = [
-        "open", "review", "in progress", "pending", 
-        "awaiting response", "working on it"
-      ];
-      
-      // Define exactly what counts as "Closed"
-      const closedStatuses = [
-        "closed/resolved", "closed/unresolved", 
-        "temp closed (review)", "temp-closed (wip)"
-      ];
-
-      window.allTicketsData.forEach(t => {
-        const dName = t.department ? t.department.name.trim() : 'General';
-        
-        // Convert status to lowercase for safe matching
-        const status = t.status ? t.status.toLowerCase().trim() : '';
-        
-        const isOpen = backlogStatuses.includes(status);
-        const isClosed = closedStatuses.includes(status);
-        
-        const createdDate = new Date(t.createdTime);
-        const closedDate = t.closedTime ? new Date(t.closedTime) : (isClosed && t.modifiedTime ? new Date(t.modifiedTime) : null);
-
-        const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
-        if (matchedDept) {
-          
-          // 1. HISTORICAL BACKLOG (11:59 PM Yesterday)
-          // To be in yesterday's backlog, the ticket must have been created before today...
-          if (createdDate < today) {
-            // ...AND it must either still be Open right now, OR it was closed sometime TODAY.
-            if (isOpen || (isClosed && closedDate && closedDate >= today)) {
-               stats[matchedDept].totalOpen++;
-            }
-          }
-          
-          // 2. Yesterday New (Strictly EST)
-          if (createdDate >= yesterday && createdDate < today) {
-            stats[matchedDept].yesterdayNew++;
-          }
-          
-          // 3. Yesterday Closed (Strictly EST)
-          if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
-            stats[matchedDept].yesterdayClosed++;
-          }
-        }
-      });
-
       let copyString = "";
       trackingDepts.forEach(d => {
-        copyString += `${stats[d].totalOpen}\t${stats[d].yesterdayNew}\t${stats[d].yesterdayClosed}\t`;
+        // Fallback to 0 if the department stats somehow didn't load
+        const s = stats[d] || { totalOpen: 0, yesterdayNew: 0, yesterdayClosed: 0 };
+        copyString += `${s.totalOpen}\t${s.yesterdayNew}\t${s.yesterdayClosed}\t`;
       });
       
       // Remove trailing tab
       copyString = copyString.replace(/\t$/, '');
 
       navigator.clipboard.writeText(copyString).then(() => {
-        alert("✅ Daily Metrics (EST) copied to clipboard!\nReady to paste into Excel.");
+        alert("✅ Exact Zoho Reports Data copied to clipboard!\nReady to paste into Excel.");
       }).catch(err => alert("Copy failed: " + err));
     }
     // -----------------------
@@ -360,6 +322,7 @@
         
         const tickets = result.data || [];
         window.allTicketsData = tickets; // Save globally for Alt+C hook
+        sessionStorage.setItem('zoho_tickets_cache_raw', JSON.stringify(result));
         
         // TRIM THE FAT: Strip away heavy, unneeded Zoho fields so it easily fits under the browser's 5MB limit
         const slimTickets = tickets.map(t => ({
