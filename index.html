@@ -268,12 +268,11 @@
       const stats = {};
       trackingDepts.forEach(d => stats[d] = { totalOpen: 0, yesterdayNew: 0, yesterdayClosed: 0 });
 
-// 1. EXACT STATUS MAPPING
-      // Add or remove statuses here to perfectly match what your Zoho UI considers "Backlog"
+      // 1. EXACT STATUS MAPPING
+      // ONLY true "Open" statuses (Excludes On Hold, ReleasePending, and Recurrence)
       const backlogStatuses = [
         "open", "review", "in progress", "pending", 
-        "awaiting response", "on hold", "working on it", 
-        "releasepending", "recurrence"
+        "awaiting response", "working on it"
       ];
       
       // Define exactly what counts as "Closed"
