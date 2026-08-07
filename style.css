@@ -102,6 +102,7 @@ body {
    LOGIN SCREEN
    ========================================= */
 #loginScreen { display: flex; justify-content: center; align-items: center; flex: 1; }
+#dashboardScreen { display: none; flex: 1; }
 .login-card { padding: 50px 40px; width: 100%; max-width: 420px; text-align: center; }
 .login-card h2 { margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.8rem; }
 .login-card p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px; }
