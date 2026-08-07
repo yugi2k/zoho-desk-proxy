@@ -296,17 +296,21 @@
         const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
         if (matchedDept) {
           
-          // Total Backlog Snapshot
-          if (isOpen) {
-            stats[matchedDept].totalOpen++;
+          // 1. HISTORICAL BACKLOG (11:59 PM Yesterday)
+          // To be in yesterday's backlog, the ticket must have been created before today...
+          if (createdDate < today) {
+            // ...AND it must either still be Open right now, OR it was closed sometime TODAY.
+            if (isOpen || (isClosed && closedDate && closedDate >= today)) {
+               stats[matchedDept].totalOpen++;
+            }
           }
           
-          // Yesterday New (Strictly EST)
+          // 2. Yesterday New (Strictly EST)
           if (createdDate >= yesterday && createdDate < today) {
             stats[matchedDept].yesterdayNew++;
           }
           
-          // Yesterday Closed (Strictly EST)
+          // 3. Yesterday Closed (Strictly EST)
           if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
             stats[matchedDept].yesterdayClosed++;
           }
