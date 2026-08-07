@@ -32,7 +32,8 @@
     </div>
   </div>
 
-<div class="header glass-panel animate-in">
+<!-- MAIN HEADER -->
+  <div class="header glass-panel animate-in">
     <div class="brand-group">
       <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo">
       <div style="display: flex; flex-direction: column; justify-content: center;">
@@ -50,13 +51,19 @@
       <a href="agents.html" class="icon-btn" data-tooltip="View Agents">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
       </a>
+      <!-- Theme Toggle -->
       <button class="icon-btn theme-toggle" onclick="toggleTheme()" data-tooltip="Toggle Theme">
         <span id="themeIcon">☀️</span>
       </button>
+      <!-- Logout Button -->
       <button class="icon-btn logout-btn" id="logoutBtn" onclick="logout()" data-tooltip="Logout">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
       </button>
     </div>
+  </div>
+  <!-- END MAIN HEADER -->
+
+  <div id="loginScreen">
 
   <div id="loginScreen">
     <div class="login-card glass-panel animate-in delay-1">
