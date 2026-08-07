@@ -275,19 +275,17 @@
         const isClosed = status.includes('close');
         
         const createdDate = new Date(t.createdTime);
-        
-        // Fix: Use exact closedTime from Zoho rather than guessing via modifiedTime
         const closedDate = t.closedTime ? new Date(t.closedTime) : null;
 
         const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
         if (matchedDept) {
-          // Total backlog (open tickets all time within snapshot)
+          // Total backlog (open tickets all time)
           if (!isClosed) stats[matchedDept].totalOpen++;
           
-          // Yesterday New
+          // Yesterday New (Created yesterday)
           if (createdDate >= yesterday && createdDate < today) stats[matchedDept].yesterdayNew++;
           
-          // Yesterday Closed (Strictly looking at when the ticket was closed)
+          // Yesterday Closed (Physically closed yesterday)
           if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
             stats[matchedDept].yesterdayClosed++;
           }
@@ -372,24 +370,41 @@
 
         tickets.forEach(ticket => {
           const tDate = new Date(ticket.createdTime);
+          const closedDate = ticket.closedTime ? new Date(ticket.closedTime) : null;
           const status = ticket.status ? ticket.status.toLowerCase() : '';
           const isClosed = status.includes('close');
           
-          const increment = (key) => {
+          // 1. Check CREATION events
+          const incCreated = (key) => {
             stats[key].total++;
-            if (isClosed) stats[key].closed++; else stats[key].open++;
+            if (!isClosed) stats[key].open++;
             if (!isClosed) timeCounts[key]++;
           };
 
-          if (tDate >= today) increment('today');
-          if (tDate >= yesterday && tDate < today) increment('yesterday');
-          if (tDate >= last7Days) increment('last7');
-          if (tDate >= currentWeek) increment('currentWeek');
-          if (tDate >= lastWeekStart && tDate < lastWeekEnd) increment('lastWeek');
-          if (tDate >= last30Days) increment('last30');
-          if (tDate >= currentMonth) increment('currentMonth');
-          if (tDate >= lastMonthStart && tDate < lastMonthEnd) increment('lastMonth');
+          if (tDate >= today) incCreated('today');
+          if (tDate >= yesterday && tDate < today) incCreated('yesterday');
+          if (tDate >= last7Days) incCreated('last7');
+          if (tDate >= currentWeek) incCreated('currentWeek');
+          if (tDate >= lastWeekStart && tDate < lastWeekEnd) incCreated('lastWeek');
+          if (tDate >= last30Days) incCreated('last30');
+          if (tDate >= currentMonth) incCreated('currentMonth');
+          if (tDate >= lastMonthStart && tDate < lastMonthEnd) incCreated('lastMonth');
 
+          // 2. Check CLOSURE events independently
+          const incClosed = (key) => { stats[key].closed++; };
+
+          if (isClosed && closedDate) {
+            if (closedDate >= today) incClosed('today');
+            if (closedDate >= yesterday && closedDate < today) incClosed('yesterday');
+            if (closedDate >= last7Days) incClosed('last7');
+            if (closedDate >= currentWeek) incClosed('currentWeek');
+            if (closedDate >= lastWeekStart && closedDate < lastWeekEnd) incClosed('lastWeek');
+            if (closedDate >= last30Days) incClosed('last30');
+            if (closedDate >= currentMonth) incClosed('currentMonth');
+            if (closedDate >= lastMonthStart && closedDate < lastMonthEnd) incClosed('lastMonth');
+          }
+
+          // 3. Current Open Departments & Priorities
           if (!isClosed) {
             const deptName = ticket.department ? ticket.department.name : 'General';
             deptCounts[deptName] = (deptCounts[deptName] || 0) + 1;
