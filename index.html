@@ -275,18 +275,22 @@
         const isClosed = status.includes('close');
         
         const createdDate = new Date(t.createdTime);
-        const modifiedDate = t.modifiedTime ? new Date(t.modifiedTime) : createdDate;
+        
+        // Fix: Use exact closedTime from Zoho rather than guessing via modifiedTime
+        const closedDate = t.closedTime ? new Date(t.closedTime) : null;
 
         const matchedDept = trackingDepts.find(d => d.toLowerCase() === dName.toLowerCase());
         if (matchedDept) {
-          // Total backlog (open tickets all time)
+          // Total backlog (open tickets all time within snapshot)
           if (!isClosed) stats[matchedDept].totalOpen++;
           
           // Yesterday New
           if (createdDate >= yesterday && createdDate < today) stats[matchedDept].yesterdayNew++;
           
-          // Yesterday Closed (relying on modifiedTime for closing timestamp approximation)
-          if (isClosed && modifiedDate >= yesterday && modifiedDate < today) stats[matchedDept].yesterdayClosed++;
+          // Yesterday Closed (Strictly looking at when the ticket was closed)
+          if (isClosed && closedDate && closedDate >= yesterday && closedDate < today) {
+            stats[matchedDept].yesterdayClosed++;
+          }
         }
       });
 
