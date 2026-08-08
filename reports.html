@@ -16,6 +16,96 @@
 
   <!-- The Master Stylesheet -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Injecting specific CSS for the new UI elements -->
+  <style>
+    .controls-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 0 15px;
+    }
+    
+    .filters-group {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .custom-select {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background-color: var(--glass-bg, rgba(255, 255, 255, 0.7));
+      color: inherit;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+    }
+    .dark-mode .custom-select { background-color: rgba(30, 41, 59, 0.7); }
+
+    .toggle-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    .metric-card {
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 2px solid transparent;
+    }
+    .metric-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+    .metric-card.active-filter {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.05);
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(59, 130, 246, 0.3);
+      border-radius: 50%;
+      border-top-color: #3b82f6;
+      animation: spin 1s ease-in-out infinite;
+      margin-left: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
@@ -31,41 +121,60 @@
     </div>
     
     <div class="header-actions">
-      <a href="reports.html" class="icon-btn">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-      </a>
-      <a href="agents.html" class="icon-btn">
+      <!-- Removed the redundant Reports icon, kept agents, theme, and logout -->
+      <a href="agents.html" class="icon-btn" title="Agents">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
       </a>
-      <button class="icon-btn theme-toggle" onclick="toggleTheme()">
+      <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
         <span id="themeIcon">☀️</span>
       </button>
-      <button class="icon-btn logout-btn" onclick="logout()">
+      <button class="icon-btn logout-btn" onclick="logout()" title="Logout">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
       </button>
     </div>
   </div>
 
-  <div class="section-title animate-in delay-1">Global Priority Distribution (Open Tickets)</div>
+  <!-- New Controls Wrapper -->
+  <div class="controls-container animate-in delay-1">
+    <div class="filters-group">
+      <select id="departmentFilter" class="custom-select" onchange="handleStateChange()">
+        <option value="All">All Departments</option>
+        <option value="Support">Support</option>
+        <option value="Services">Services</option>
+        <option value="Development">Development</option>
+        <option value="Production">Production</option>
+        <option value="IT Requests">IT Requests</option>
+        <option value="Project Management">Project Management</option>
+        <option value="Specialist Team">Specialist Team</option>
+        <option value="Billing">Billing</option>
+        <option value="Concierge Services">Concierge Services</option>
+        <option value="SalesHelp">SalesHelp</option>
+      </select>
+    </div>
+    
+    <div class="toggle-wrapper">
+      <span>90-Day History</span>
+      <label class="switch">
+        <input type="checkbox" id="historyToggle" onchange="handleToggleChange()">
+        <span class="slider"></span>
+      </label>
+      <span id="loadingIndicator" style="display:none;" class="loading-spinner"></span>
+    </div>
+  </div>
+
+  <div class="section-title animate-in delay-1" id="cardsTitle">Global Priority Distribution (Open Tickets)</div>
   <div class="dashboard-grid animate-in delay-1" id="priorityCardsContainer">
     <!-- Rendered via JS -->
   </div>
 
-  <div class="section-title animate-in delay-1">Global Ticket Log</div>
+  <div class="section-title animate-in delay-1">Ticket Log <span id="filterSubtext" style="font-weight:normal; font-size:0.9rem; color:#888;"></span></div>
   <div class="table-container glass-panel animate-in delay-1">
     <table>
-      <thead>
-        <tr>
-          <th>Ticket #</th>
-          <th>Subject</th>
-          <th>Priority</th>
-          <th>Status</th>
-          <th>Assignee</th>
-          <th>Created Date</th>
-        </tr>
+      <thead id="reportsTableHeader">
+        <!-- Rendered via JS -->
       </thead>
       <tbody id="reportsTableBody">
-        <tr><td colspan="6" style="padding:40px;text-align:center;">Compiling reports...</td></tr>
+        <tr><td colspan="8" style="padding:40px;text-align:center;">Compiling reports...</td></tr>
       </tbody>
     </table>
   </div>
@@ -73,6 +182,18 @@
   <footer>Powered by NovaForge AI | &copy; 2026 Mindmatrix | v1.2.0</footer>
 
   <script>
+    // State Management
+    const appState = {
+      isHistoryMode: false,
+      selectedDepartment: 'All',
+      activePriorityFilter: null
+    };
+
+    let liveData = [];
+    let historyData = [];
+    const SHEET_ID = '1deeBJssfGAT46PbP7HQTe3wQefj-roBfPboOEATy1Kk';
+
+    // UI Boilerplate
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme === 'light') {
@@ -80,51 +201,141 @@
         document.getElementById('themeIcon').textContent = '🌙';
       }
     }
-
     function toggleTheme() {
       const isLight = document.body.classList.toggle('light-mode');
       document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
     }
-
     function logout() {
       sessionStorage.removeItem('auth_session');
       window.location.href = 'index.html';
     }
 
-    function loadReportsData() {
+    // Load Live Data (From cache)
+    function loadInitialData() {
       const cache = sessionStorage.getItem('zoho_tickets_cache');
-      if (!cache) {
-        document.getElementById('reportsTableBody').innerHTML = `<tr><td colspan="6" style="color:#ef4444; text-align:center;">No data found. Please load the Main Dashboard first.</td></tr>`;
+      if (cache) {
+        liveData = JSON.parse(cache);
+      }
+      renderDashboard();
+    }
+
+    // Fetch History Data (From Google Sheets)
+    async function fetchHistoricalData() {
+      if (historyData.length > 0) return; // Already fetched
+      
+      const loader = document.getElementById('loadingIndicator');
+      loader.style.display = 'inline-block';
+      
+      try {
+        // Fetch via Google Visualization API (Returns JSON instead of plain CSV)
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+        const res = await fetch(url);
+        const text = await res.text();
+        
+        // Strip out the google visualization wrapper to get raw JSON
+        const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonString);
+        
+        // Safe getter function for Gviz cells
+        const getV = (row, idx) => (row.c && row.c[idx] && row.c[idx].v) ? row.c[idx].v : null;
+
+        historyData = data.table.rows.map(row => ({
+          id: getV(row, 0),
+          ticketNumber: getV(row, 1),
+          subject: getV(row, 2),
+          department: { name: getV(row, 3) },
+          assignee: { lastName: getV(row, 4) },
+          status: getV(row, 5),
+          priority: getV(row, 6),
+          createdTime: getV(row, 7),
+          closedTime: getV(row, 8),
+          resolutionTime: getV(row, 9)
+        }));
+        
+      } catch (err) {
+        alert("Failed to load historical data from Google Sheets.");
+        console.error(err);
+      } finally {
+        loader.style.display = 'none';
+      }
+    }
+
+    // Handle User Interactions
+    async function handleToggleChange() {
+      appState.isHistoryMode = document.getElementById('historyToggle').checked;
+      appState.activePriorityFilter = null; // Reset priority filter on switch
+      
+      if (appState.isHistoryMode) {
+        document.getElementById('cardsTitle').innerText = "Global Priority Distribution (Last 90 Days)";
+        await fetchHistoricalData();
+      } else {
+        document.getElementById('cardsTitle').innerText = "Global Priority Distribution (Open Tickets)";
+      }
+      renderDashboard();
+    }
+
+    function handleStateChange() {
+      appState.selectedDepartment = document.getElementById('departmentFilter').value;
+      appState.activePriorityFilter = null; // Reset priority filter on dept change
+      renderDashboard();
+    }
+
+    function togglePriorityFilter(priorityValue) {
+      if (appState.activePriorityFilter === priorityValue) {
+        appState.activePriorityFilter = null; // Click again to remove filter
+      } else {
+        appState.activePriorityFilter = priorityValue;
+      }
+      renderDashboard();
+    }
+
+    // Master Render Function
+    function renderDashboard() {
+      // 1. Select the working dataset
+      let currentData = appState.isHistoryMode ? historyData : liveData;
+      
+      if (!currentData || currentData.length === 0) {
+        document.getElementById('reportsTableBody').innerHTML = `<tr><td colspan="8" style="color:#ef4444; text-align:center;">No data found.</td></tr>`;
         return;
       }
-      
-      const allTickets = JSON.parse(cache);
-      
-      // Calculate Priorities for OPEN tickets only
+
+      // 2. Filter by Department
+      if (appState.selectedDepartment !== 'All') {
+        currentData = currentData.filter(t => {
+           const deptName = t.department ? (t.department.name || '') : '';
+           return deptName.toLowerCase().includes(appState.selectedDepartment.toLowerCase());
+        });
+      }
+
+      // 3. Filter out closed tickets if we are in LIVE (toggle off) mode
+      if (!appState.isHistoryMode) {
+         currentData = currentData.filter(t => !(t.status || '').toLowerCase().includes('close'));
+      }
+
+      // 4. Calculate Priorities (Based on the filtered dataset)
       const priorityCounts = { "Critical": 0, "Urgent": 0, "High": 0, "Medium": 0, "Low": 0, "None": 0 };
       
-      allTickets.forEach(t => {
-        const isClosed = (t.status || '').toLowerCase().includes('close');
-        if (!isClosed) {
-          const prio = t.priority ? t.priority.toLowerCase() : 'none';
-          if (prio.includes('critical')) priorityCounts["Critical"]++;
-          else if (prio.includes('urgent')) priorityCounts["Urgent"]++;
-          else if (prio.includes('high')) priorityCounts["High"]++;
-          else if (prio.includes('medium')) priorityCounts["Medium"]++;
-          else if (prio.includes('low')) priorityCounts["Low"]++;
-          else priorityCounts["None"]++;
-        }
+      currentData.forEach(t => {
+        const prio = t.priority ? t.priority.toLowerCase() : 'none';
+        if (prio.includes('critical')) priorityCounts["Critical"]++;
+        else if (prio.includes('urgent')) priorityCounts["Urgent"]++;
+        else if (prio.includes('high')) priorityCounts["High"]++;
+        else if (prio.includes('medium')) priorityCounts["Medium"]++;
+        else if (prio.includes('low')) priorityCounts["Low"]++;
+        else priorityCounts["None"]++;
       });
 
-      // Render Cards
+      // 5. Render Priority Cards
       let prioHtml = '';
       const colors = { "Critical": "#ef4444", "Urgent": "#fca5a5", "High": "#f97316", "Medium": "#fde047", "Low": "#86efac", "None": "#94a3b8" };
       Object.entries(priorityCounts).forEach(([p, count]) => {
-        if(count > 0 || p !== "None") { // Always show main priorities, hide 'None' if 0
+        if(count > 0 || p !== "None") { 
           const textC = (p === 'Medium' || p === 'Low' || p === 'Urgent') ? '#0f172a' : '#fff';
+          const isActive = appState.activePriorityFilter === p ? 'active-filter' : '';
+          
           prioHtml += `
-            <div class="metric-card glass-panel">
+            <div class="metric-card glass-panel ${isActive}" onclick="togglePriorityFilter('${p}')">
               <div><span class="priority-badge" style="background-color:${colors[p]}; color:${textC};">${p}</span></div>
               <p>${count}</p>
             </div>`;
@@ -132,15 +343,61 @@
       });
       document.getElementById('priorityCardsContainer').innerHTML = prioHtml;
 
-      // Render Table
-      const tableDateFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric' });
+      // 6. Filter by Priority (if a card is clicked)
+      let tableData = currentData;
+      if (appState.activePriorityFilter) {
+        document.getElementById('filterSubtext').innerText = `(Filtered by ${appState.activePriorityFilter})`;
+        tableData = tableData.filter(t => {
+          const p = t.priority ? t.priority.toLowerCase() : 'none';
+          if (appState.activePriorityFilter === "None") return p === 'none';
+          return p.includes(appState.activePriorityFilter.toLowerCase());
+        });
+      } else {
+        document.getElementById('filterSubtext').innerText = "";
+      }
+
+      // 7. Render Table Headers
+      const thead = document.getElementById('reportsTableHeader');
+      if (appState.isHistoryMode) {
+        thead.innerHTML = `
+          <tr>
+            <th>Ticket #</th>
+            <th>Subject</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Assignee</th>
+            <th>Created Date</th>
+            <th>Closed Date</th>
+            <th>Resolution (Hrs)</th>
+          </tr>`;
+      } else {
+        thead.innerHTML = `
+          <tr>
+            <th>Ticket #</th>
+            <th>Subject</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Assignee</th>
+            <th>Created Date</th>
+          </tr>`;
+      }
+
+      // 8. Render Table Body
       const tbody = document.getElementById('reportsTableBody');
       tbody.innerHTML = '';
+      
+      const tableDateFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' });
 
-      allTickets.forEach(t => {
+      tableData.forEach(t => {
         const prio = t.priority || '-';
-        const assignee = t.assignee ? `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim() : 'Unassigned';
-        const created = t.createdTime ? tableDateFmt.format(new Date(t.createdTime)) : '-';
+        const assignee = t.assignee ? (t.assignee.lastName || t.assignee.firstName || 'Unassigned').trim() : 'Unassigned';
+        
+        // Date formatting handles both Zoho's ISO string and the Sheet's formatted string safely
+        let created = '-';
+        if (t.createdTime) {
+           const d = new Date(t.createdTime);
+           created = isNaN(d.getTime()) ? t.createdTime : tableDateFmt.format(d);
+        }
 
         let bg = '#94a3b8'; let tc = '#ffffff'; const pStr = prio.toLowerCase();
         if (pStr.includes('low')) { bg = '#86efac'; tc = '#0f172a'; } 
@@ -150,21 +407,39 @@
         else if (pStr.includes('critical')) { bg = '#ef4444'; tc = '#ffffff'; } 
         const pHtml = prio !== '-' ? `<span class="priority-badge" style="background-color:${bg}; color:${tc};">${prio}</span>` : prio;
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><a href="https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${t.id}" target="_blank" class="ticket-link">#${t.ticketNumber}</a></td>
+        const ticketLink = `https://desk.zoho.com/support/mindmatrix/ShowHomePage.do#Cases/dv/${t.id}`;
+
+        let tr = document.createElement('tr');
+        
+        let rowHtml = `
+          <td><a href="${ticketLink}" target="_blank" class="ticket-link">#${t.ticketNumber}</a></td>
           <td><strong>${t.subject}</strong></td>
           <td>${pHtml}</td>
           <td>${t.status || '-'}</td>
           <td>${assignee}</td>
           <td>${created}</td>
         `;
+
+        if (appState.isHistoryMode) {
+          let closed = '-';
+          if (t.closedTime) {
+             const cd = new Date(t.closedTime);
+             closed = isNaN(cd.getTime()) ? t.closedTime : tableDateFmt.format(cd);
+          }
+          rowHtml += `
+            <td>${closed}</td>
+            <td><strong>${t.resolutionTime || '-'}</strong></td>
+          `;
+        }
+
+        tr.innerHTML = rowHtml;
         tbody.appendChild(tr);
       });
     }
 
+    // Initialize Page
     initTheme();
-    loadReportsData();
+    loadInitialData();
   </script>
 </body>
 </html>
