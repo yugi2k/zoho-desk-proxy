@@ -12,7 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
   <script>
-    if (sessionStorage.getItem('auth_session') !== 'active') {
+    const authExpiry = localStorage.getItem('auth_expiry');
+    if (!authExpiry || Date.now() > parseInt(authExpiry)) {
+      localStorage.removeItem('auth_expiry');
       window.location.href = 'index.html';
     }
   </script>
@@ -176,7 +178,10 @@
     }
 
     function logout() {
-      sessionStorage.removeItem('auth_session');
+      localStorage.removeItem('auth_expiry');
+      localStorage.removeItem('zoho_tickets_cache');
+      localStorage.removeItem('zoho_data_timestamp');
+      localStorage.removeItem('zoho_exact_stats');
       window.location.href = 'index.html';
     }
 
@@ -189,17 +194,12 @@
     const tableDateFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 
     function getClientName(ticket) {
-      if (ticket.customFields && ticket.customFields['Client Name']) return ticket.customFields['Client Name'];
-      if (ticket.cf && ticket.cf['Client Name']) return ticket.cf['Client Name'];
-      if (ticket['Client Name']) return ticket['Client Name'];
-      if (ticket.contact && ticket.contact.account && ticket.contact.account.accountName) return ticket.contact.account.accountName;
-      const fName = ticket.contact ? (ticket.contact.firstName || "") : "";
-      const lName = ticket.contact ? (ticket.contact.lastName || "") : "";
-      return `${fName} ${lName}`.trim() || "Unknown";
+      return ticket.clientName || "Unknown";
     }
 
     function loadData() {
-      const cache = sessionStorage.getItem('zoho_tickets_cache');
+      // Switched to localStorage
+      const cache = localStorage.getItem('zoho_tickets_cache');
       if (!cache) {
         document.getElementById('agentsTableBody').innerHTML = `<tr><td colspan="5" style="color:#ef4444; text-align:center;">No data found. Please load the Main Dashboard first.</td></tr>`;
         return;
