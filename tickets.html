@@ -12,8 +12,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-  <script>
-    if (sessionStorage.getItem('auth_session') !== 'active') {
+<script>
+    const authExpiry = localStorage.getItem('auth_expiry');
+    if (!authExpiry || Date.now() > parseInt(authExpiry)) {
+      localStorage.removeItem('auth_expiry');
       window.location.href = 'index.html';
     }
   </script>
@@ -194,7 +196,10 @@
     }
 
     function logout() {
-      sessionStorage.removeItem('auth_session');
+      localStorage.removeItem('auth_expiry');
+      localStorage.removeItem('zoho_tickets_cache');
+      localStorage.removeItem('zoho_data_timestamp');
+      localStorage.removeItem('zoho_exact_stats');
       window.location.href = 'index.html';
     }
 
@@ -218,16 +223,9 @@
       document.getElementById(id).classList.toggle('active');
     }
 
+// Since we now pre-format clientName in index.html, we can massively simplify this function!
     function getClientName(ticket) {
-      if (ticket.customFields && ticket.customFields['Client Name']) return ticket.customFields['Client Name'];
-      if (ticket.cf && ticket.cf['Client Name']) return ticket.cf['Client Name'];
-      if (ticket['Client Name']) return ticket['Client Name'];
-      if (ticket.clientName) return ticket.clientName;
-      if (ticket.contact && ticket.contact.account && ticket.contact.account.accountName) return ticket.contact.account.accountName;
-      const fName = ticket.contact ? (ticket.contact.firstName || "") : "";
-      const lName = ticket.contact ? (ticket.contact.lastName || "") : "";
-      const full = `${fName} ${lName}`.trim();
-      return full || "Unknown";
+      return ticket.clientName || "Unknown";
     }
 
     // --- PIN MODAL LOGIC ---
@@ -271,24 +269,40 @@
       }
 
       try {
-        const fetchUrl = forceLive ? `${PROXY_URL}?refresh=true&pin=${encodeURIComponent(pin)}` : PROXY_URL;
-        const response = await fetch(fetchUrl, { method: 'GET' });
-        const result = await response.json();
+        const now = Date.now();
+        const cacheTimestamp = localStorage.getItem('zoho_data_timestamp');
+        const cachedTickets = localStorage.getItem('zoho_tickets_cache');
         
-        if (result.error) {
-          if (forceLive) { alert(result.error); window.location.reload(); return; }
-          throw new Error(result.error);
+        let allTickets = [];
+        let lastUpdateMs = null;
+
+        // Use cache if it exists, is less than 15 mins old, and not forcing live
+        if (!forceLive && cacheTimestamp && cachedTickets && (now - parseInt(cacheTimestamp) < 15 * 60 * 1000)) {
+            allTickets = JSON.parse(cachedTickets);
+            lastUpdateMs = parseInt(cacheTimestamp);
+        } else {
+            const fetchUrl = forceLive ? `${PROXY_URL}?refresh=true&pin=${encodeURIComponent(pin)}` : PROXY_URL;
+            const response = await fetch(fetchUrl, { method: 'GET' });
+            const result = await response.json();
+            
+            if (result.error) {
+              if (forceLive) { alert(result.error); window.location.reload(); return; }
+              throw new Error(result.error);
+            }
+            
+            // We won't re-slim the tickets here, we will just use them and let index.html handle the cache writing on next dashboard load
+            allTickets = result.data || [];
+            lastUpdateMs = result.lastUpdated || now;
         }
         
-        if (result.lastUpdated && lastUpdatedEl) {
+        if (lastUpdateMs && lastUpdatedEl) {
           const formatter = new Intl.DateTimeFormat('en-US', { 
             timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', 
             hour: 'numeric', minute: '2-digit', hour12: true 
           });
-          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${formatter.format(new Date(result.lastUpdated))} ET`;
+          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${formatter.format(new Date(lastUpdateMs))} ET`;
         }
 
-        let allTickets = result.data || [];
         allTickets = allTickets.filter(t => !((t.status || '').toLowerCase().includes('clos')));
         
         if (filterType === 'priority') {
