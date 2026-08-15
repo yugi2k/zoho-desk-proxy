@@ -7,7 +7,16 @@
   
   <link rel="icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    const authExpiry = localStorage.getItem('auth_expiry');
+    if (!authExpiry || Date.now() > parseInt(authExpiry)) {
+      localStorage.removeItem('auth_expiry');
+      // Only redirect if they aren't already on the login page
+      if (window.location.pathname.indexOf('index.html') === -1 && window.location.pathname !== '/') {
+         window.location.href = 'index.html';
+      }
+    }
+  </script>
 
   <!-- The Master Stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -147,15 +156,23 @@
     }
 
     function checkSession() {
-      if (sessionStorage.getItem('auth_session') === 'active') showDashboard();
+      const authExpiry = localStorage.getItem('auth_expiry');
+      if (authExpiry && Date.now() < parseInt(authExpiry)) {
+        showDashboard();
+      }
     }
 
     function logout() {
-      sessionStorage.removeItem('auth_session');
-      window.location.href = 'index';
+      localStorage.removeItem('auth_expiry');
+      localStorage.removeItem('zoho_tickets_cache');
+      localStorage.removeItem('zoho_data_timestamp');
+      localStorage.removeItem('zoho_exact_stats');
+      window.location.href = 'index.html';
     }
+
     function showDashboard() {
-      sessionStorage.setItem('auth_session', 'active');
+      // Set session to expire in 48 hours (48 hrs * 60 min * 60 sec * 1000 ms)
+      localStorage.setItem('auth_expiry', Date.now() + (48 * 60 * 60 * 1000));
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('dashboardScreen').style.display = 'block';
       document.getElementById('logoutBtn').style.display = 'flex';
@@ -286,7 +303,7 @@
     }
     // -----------------------
 
-    async function fetchData(forceLive = false, pin = '') {
+  async function fetchData(forceLive = false, pin = '') {
       const container = document.getElementById('dashboardContainer');
       const lastUpdatedEl = document.getElementById('lastUpdatedText');
       
@@ -296,43 +313,76 @@
       }
 
       try {
-        const fetchUrl = forceLive ? `${PROXY_URL}?refresh=true&pin=${encodeURIComponent(pin)}` : PROXY_URL;
-        const response = await fetch(fetchUrl, { method: 'GET' });
-        const result = await response.json();
-        
-        if (result.error) {
-          if (forceLive) { alert(result.error); window.location.reload(); return; }
-          throw new Error(result.error);
+        const now = Date.now();
+        const cacheTimestamp = localStorage.getItem('zoho_data_timestamp');
+        const cachedTickets = localStorage.getItem('zoho_tickets_cache');
+        const cachedStats = localStorage.getItem('zoho_exact_stats');
+
+        let tickets = [];
+        let statsData = null;
+        let lastUpdateMs = null;
+
+        // --- THE CACHING ENGINE ---
+        // If not forcing live, and cache is less than 15 mins old (900,000 ms), USE CACHE!
+        if (!forceLive && cacheTimestamp && cachedTickets && (now - parseInt(cacheTimestamp) < 15 * 60 * 1000)) {
+            tickets = JSON.parse(cachedTickets);
+            statsData = cachedStats ? JSON.parse(cachedStats) : null;
+            lastUpdateMs = parseInt(cacheTimestamp);
+        } else {
+            // Cache is old or missing. Fetch fresh from Proxy!
+            const fetchUrl = forceLive ? `${PROXY_URL}?refresh=true&pin=${encodeURIComponent(pin)}` : PROXY_URL;
+            const response = await fetch(fetchUrl, { method: 'GET' });
+            const result = await response.json();
+            
+            if (result.error) {
+              if (forceLive) { alert(result.error); window.location.reload(); return; }
+              throw new Error(result.error);
+            }
+            
+            tickets = result.data || [];
+            statsData = result.exactStats;
+            lastUpdateMs = result.lastUpdated || now;
+            
+            // Trim the fat & pre-format client names to save storage space (Prevents 5MB limit crash)
+            const slimTickets = tickets.map(t => {
+              let cName = "Unknown";
+              if (t.customFields && t.customFields['Client Name']) cName = t.customFields['Client Name'];
+              else if (t.cf && t.cf['Client Name']) cName = t.cf['Client Name'];
+              else if (t['Client Name']) cName = t['Client Name'];
+              else if (t.clientName) cName = t.clientName;
+              else if (t.contact && t.contact.account && t.contact.account.accountName) cName = t.contact.account.accountName;
+              else if (t.contact) cName = `${t.contact.firstName || ''} ${t.contact.lastName || ''}`.trim();
+
+              return {
+                id: t.id, ticketNumber: t.ticketNumber, subject: t.subject,
+                status: t.status, priority: t.priority,
+                department: t.department ? { name: t.department.name } : null,
+                assignee: t.assignee ? { id: t.assignee.id, firstName: t.assignee.firstName, lastName: t.assignee.lastName, email: t.assignee.email } : null,
+                createdTime: t.createdTime, closedTime: t.closedTime, modifiedTime: t.modifiedTime,
+                clientName: cName || "Unknown"
+              };
+            });
+            
+            // Save to Local Cache
+            localStorage.setItem('zoho_tickets_cache', JSON.stringify(slimTickets));
+            if(statsData) localStorage.setItem('zoho_exact_stats', JSON.stringify(statsData));
+            localStorage.setItem('zoho_data_timestamp', lastUpdateMs.toString());
+            
+            tickets = slimTickets; // Use the slimmed down versions to render
         }
+
+        // Expose globally for Alt+C hook
+        window.allTicketsData = tickets; 
+        window.exactStatsData = statsData; 
         
-        if (result.lastUpdated && lastUpdatedEl) {
+        if (lastUpdateMs && lastUpdatedEl) {
           const formatter = new Intl.DateTimeFormat('en-US', { 
             timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', 
             hour: 'numeric', minute: '2-digit', hour12: true 
           });
-          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${formatter.format(new Date(result.lastUpdated))} ET`;
+          lastUpdatedEl.innerHTML = `⏱️ Last updated: ${formatter.format(new Date(lastUpdateMs))} ET`;
         }
         
-        const tickets = result.data || [];
-        window.allTicketsData = tickets; // Save globally for Alt+C hook
-        window.exactStatsData = result.exactStats; // Save tiny object globally in RAM
-        
-        // TRIM THE FAT: Strip away heavy, unneeded Zoho fields so it easily fits under the browser's 5MB limit
-        const slimTickets = tickets.map(t => ({
-          id: t.id,
-          ticketNumber: t.ticketNumber,
-          subject: t.subject,
-          status: t.status,
-          statusType: t.statusType,
-          priority: t.priority,
-          department: t.department ? { name: t.department.name } : null,
-          assignee: t.assignee ? { firstName: t.assignee.firstName, lastName: t.assignee.lastName } : null,
-          createdTime: t.createdTime,
-          closedTime: t.closedTime,
-          modifiedTime: t.modifiedTime
-        }));
-        
-        sessionStorage.setItem('zoho_tickets_cache', JSON.stringify(slimTickets));
         
         // --- US Eastern Time Boundaries ---
         const today = getETMidnightForOffset(0);
