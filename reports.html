@@ -9,7 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <script>
-    if (sessionStorage.getItem('auth_session') !== 'active') {
+    const authExpiry = localStorage.getItem('auth_expiry');
+    if (!authExpiry || Date.now() > parseInt(authExpiry)) {
+      localStorage.removeItem('auth_expiry');
       window.location.href = 'index.html';
     }
   </script>
@@ -213,14 +215,19 @@
       document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
     }
+    
     function logout() {
-      sessionStorage.removeItem('auth_session');
+      localStorage.removeItem('auth_expiry');
+      localStorage.removeItem('zoho_tickets_cache');
+      localStorage.removeItem('zoho_data_timestamp');
+      localStorage.removeItem('zoho_exact_stats');
       window.location.href = 'index.html';
     }
 
     // Load Live Data (From cache)
     function loadInitialData() {
-      const cache = sessionStorage.getItem('zoho_tickets_cache');
+      // Switched to localStorage
+      const cache = localStorage.getItem('zoho_tickets_cache');
       if (cache) {
         liveData = JSON.parse(cache);
       }
