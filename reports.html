@@ -9,10 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <script>
+    // 48-Hour Secure Session Check & Clean URL Redirect
     const authExpiry = localStorage.getItem('auth_expiry');
     if (!authExpiry || Date.now() > parseInt(authExpiry)) {
       localStorage.removeItem('auth_expiry');
-      window.location.href = 'index.html';
+      window.location.href = 'index';
     }
   </script>
 
@@ -113,7 +114,7 @@
 
   <div class="header-container animate-in">
     <div class="title-group">
-      <a href="index.html" class="btn-back">← Dashboard</a>
+      <a href="index" class="btn-back">← Dashboard</a>
       <div style="display: flex; flex-direction: column; justify-content: center;">
         <h1 id="pageTitle" style="display: flex; align-items: center; gap: 10px; margin: 0;">
           <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo">
@@ -123,7 +124,7 @@
     </div>
     
     <div class="header-actions">
-      <a href="agents.html" class="icon-btn" title="Agents">
+      <a href="agents" class="icon-btn" title="Agents">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
       </a>
       <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
@@ -151,7 +152,6 @@
         <option value="SalesHelp">SalesHelp</option>
       </select>
 
-      <!-- New Timeframe Filter -->
       <select id="timeframeFilter" class="custom-select" onchange="handleStateChange()">
         <option value="All">Any Update Time</option>
         <option value="14">No Updates > 2 Weeks</option>
@@ -194,7 +194,7 @@
     const appState = {
       isHistoryMode: false,
       selectedDepartment: 'All',
-      timeframeFilter: 'All', // New State for Stale Tickets
+      timeframeFilter: 'All', 
       activePriorityFilter: null
     };
 
@@ -215,18 +215,16 @@
       document.getElementById('themeIcon').textContent = isLight ? '🌙' : '☀️';
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
     }
-    
     function logout() {
       localStorage.removeItem('auth_expiry');
       localStorage.removeItem('zoho_tickets_cache');
       localStorage.removeItem('zoho_data_timestamp');
       localStorage.removeItem('zoho_exact_stats');
-      window.location.href = 'index.html';
+      window.location.href = 'index';
     }
 
     // Load Live Data (From cache)
     function loadInitialData() {
-      // Switched to localStorage
       const cache = localStorage.getItem('zoho_tickets_cache');
       if (cache) {
         liveData = JSON.parse(cache);
@@ -262,7 +260,7 @@
           createdTime: getV(row, 7),
           closedTime: getV(row, 8),
           resolutionTime: getV(row, 9),
-          modifiedTime: getV(row, 10) // Mapped New Column
+          modifiedTime: getV(row, 10) // Mapped Column
         }));
         
       } catch (err) {
@@ -289,7 +287,7 @@
 
     function handleStateChange() {
       appState.selectedDepartment = document.getElementById('departmentFilter').value;
-      appState.timeframeFilter = document.getElementById('timeframeFilter').value; // Save dropdown state
+      appState.timeframeFilter = document.getElementById('timeframeFilter').value; 
       appState.activePriorityFilter = null; 
       renderDashboard();
     }
@@ -308,7 +306,7 @@
       let currentData = appState.isHistoryMode ? historyData : liveData;
       
       if (!currentData || currentData.length === 0) {
-        document.getElementById('reportsTableBody').innerHTML = `<tr><td colspan="9" style="color:#ef4444; text-align:center;">No data found.</td></tr>`;
+        document.getElementById('reportsTableBody').innerHTML = `<tr><td colspan="9" style="color:#ef4444; text-align:center;">No data found. Ensure cache is loaded from Dashboard.</td></tr>`;
         return;
       }
 
@@ -327,8 +325,10 @@
         cutoff.setDate(cutoff.getDate() - days);
         
         currentData = currentData.filter(t => {
-           if (!t.modifiedTime) return false;
-           return new Date(t.modifiedTime) < cutoff;
+           // Fallback logic to prevent zero-data bugs if modifiedTime is missing from cache
+           const refTime = t.agentRespondedTime || t.modifiedTime || t.createdTime;
+           if (!refTime) return false;
+           return new Date(refTime) < cutoff;
         });
       }
 
@@ -390,7 +390,7 @@
             <th>Priority</th>
             <th>Status</th>
             <th>Assignee</th>
-            <th>Last Updated</th>
+            <th>Agent Responded Time</th>
             <th>Created Date</th>
             <th>Closed Date</th>
             <th>Resolution (Hrs)</th>
@@ -403,7 +403,7 @@
             <th>Priority</th>
             <th>Status</th>
             <th>Assignee</th>
-            <th>Last Updated</th>
+            <th>Agent Responded Time</th>
             <th>Created Date</th>
           </tr>`;
       }
@@ -412,6 +412,12 @@
       const tbody = document.getElementById('reportsTableBody');
       tbody.innerHTML = '';
       
+      if(tableData.length === 0) {
+        const colCount = appState.isHistoryMode ? 9 : 7;
+        tbody.innerHTML = `<tr><td colspan="${colCount}" style="padding:40px; text-align:center; color: var(--text-muted);">No tickets match the selected filters.</td></tr>`;
+        return;
+      }
+
       const tableDateFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' });
 
       tableData.forEach(t => {
@@ -424,10 +430,12 @@
            created = isNaN(d.getTime()) ? t.createdTime : tableDateFmt.format(d);
         }
 
-        let updated = '-';
-        if (t.modifiedTime) {
-           const d = new Date(t.modifiedTime);
-           updated = isNaN(d.getTime()) ? t.modifiedTime : tableDateFmt.format(d);
+        // Renamed and mapped to capture Agent Responded / Modified Time robustly
+        let responded = '-';
+        const respondedData = t.agentRespondedTime || t.modifiedTime;
+        if (respondedData) {
+           const d = new Date(respondedData);
+           responded = isNaN(d.getTime()) ? respondedData : tableDateFmt.format(d);
         }
 
         let bg = '#94a3b8'; let tc = '#ffffff'; const pStr = prio.toLowerCase();
@@ -448,7 +456,7 @@
           <td>${pHtml}</td>
           <td>${t.status || '-'}</td>
           <td>${assignee}</td>
-          <td>${updated}</td>
+          <td>${responded}</td>
           <td>${created}</td>
         `;
 
