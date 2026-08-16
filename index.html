@@ -7,13 +7,18 @@
   
   <link rel="icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FIX: Instructs Google to trigger renderGoogleButton the exact millisecond it finishes downloading -->
+  <script src="https://accounts.google.com/gsi/client?onload=renderGoogleButton" async defer></script>
+
   <script>
     const authExpiry = localStorage.getItem('auth_expiry');
     if (!authExpiry || Date.now() > parseInt(authExpiry)) {
       localStorage.removeItem('auth_expiry');
-      // Only redirect if they aren't already on the login page
-      if (window.location.pathname.indexOf('index.html') === -1 && window.location.pathname !== '/') {
-         window.location.href = 'index.html';
+      // FIX: Clean URL check
+      const path = window.location.pathname;
+      if (!path.endsWith('index') && !path.endsWith('index.html') && !path.endsWith('/')) {
+         window.location.href = 'index';
       }
     }
   </script>
@@ -41,7 +46,7 @@
     </div>
   </div>
 
-<!-- MAIN HEADER -->
+  <!-- MAIN HEADER -->
   <div class="header glass-panel animate-in">
     <div class="brand-group">
       <img src="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" alt="Mindmatrix" class="brand-logo">
@@ -54,10 +59,10 @@
     <div class="header-actions">
       <!-- Wrap secured buttons to hide them on the login screen -->
       <div id="securedNavButtons" style="display: none; align-items: center; gap: 12px;">
-        <a href="reports.html" class="icon-btn" data-tooltip="View Reports">
+        <a href="reports" class="icon-btn" data-tooltip="View Reports">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
         </a>
-        <a href="agents.html" class="icon-btn" data-tooltip="View Agents">
+        <a href="agents" class="icon-btn" data-tooltip="View Agents">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
         </a>
         <button class="icon-btn logout-btn" onclick="logout()" data-tooltip="Logout">
@@ -91,12 +96,6 @@
       <!-- SSO Fix: Empty container for JavaScript rendering -->
       <div style="display: flex; justify-content: center; width: 100%; min-height: 44px;">
         <div id="googleButtonContainer"></div>
-      </div>
-      
-      <!-- SSO Fix: Wrapped in flex layout for strict sizing/alignment -->
-      <div style="display: flex; justify-content: center; width: 100%;">
-        <div id="g_id_onload" data-client_id="801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com" data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-        <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
       </div>
       
       <p id="loginError" style="color: #ef4444; margin-top: 20px; font-size: 0.9rem; display: none; font-weight: 500;"></p>
@@ -147,7 +146,8 @@
     // ------------------------------
 
     // --- FORCE GOOGLE SSO TO RENDER ---
-    window.onload = function () {
+    // FIX: Changed from anonymous window.onload to named function called by Google script
+    function renderGoogleButton() {
       if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
         google.accounts.id.initialize({
           client_id: "801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com",
@@ -163,7 +163,7 @@
       } else {
         console.warn("Google SSO script did not load.");
       }
-    };
+    }
 
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
@@ -191,7 +191,8 @@
       localStorage.removeItem('zoho_tickets_cache');
       localStorage.removeItem('zoho_data_timestamp');
       localStorage.removeItem('zoho_exact_stats');
-      window.location.href = 'index.html';
+      // FIX: Clean URL
+      window.location.href = 'index';
     }
 
     function showDashboard() {
@@ -285,19 +286,20 @@
       // Force Sync
       if (event.altKey && (event.key === 'r' || event.key === 'R')) {
         event.preventDefault();
-        if (sessionStorage.getItem('auth_session') === 'active') showPinModal();
+        const authExpiry = localStorage.getItem('auth_expiry');
+        if (authExpiry && Date.now() < parseInt(authExpiry)) showPinModal();
       }
       
       // Hidden Alt+C Copy Feature
       if (event.altKey && (event.key === 'c' || event.key === 'C')) {
         event.preventDefault();
-        if (sessionStorage.getItem('auth_session') === 'active' && window.allTicketsData) {
+        const authExpiry = localStorage.getItem('auth_expiry');
+        if (authExpiry && Date.now() < parseInt(authExpiry) && window.allTicketsData) {
           copyMatrixToClipboard();
         }
       }
     });
 
-// --- HIDDEN ALT+C FUNCTION ---
 // --- HIDDEN ALT+C FUNCTION (Now using exact Zoho Dashboard API numbers) ---
     function copyMatrixToClipboard() {
       // Retrieve the exactStats object from global memory
