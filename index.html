@@ -87,6 +87,11 @@
         <button class="btn-login" onclick="verifyOTP()">Login securely</button>
       </div>
       <div class="divider">OR</div>
+
+      <!-- SSO Fix: Empty container for JavaScript rendering -->
+      <div style="display: flex; justify-content: center; width: 100%; min-height: 44px;">
+        <div id="googleButtonContainer"></div>
+      </div>
       
       <!-- SSO Fix: Wrapped in flex layout for strict sizing/alignment -->
       <div style="display: flex; justify-content: center; width: 100%;">
@@ -140,6 +145,25 @@
       return getMidnightET(dummy.getUTCFullYear(), dummy.getUTCMonth() + 1, dummy.getUTCDate());
     }
     // ------------------------------
+
+    // --- FORCE GOOGLE SSO TO RENDER ---
+    window.onload = function () {
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+        google.accounts.id.initialize({
+          client_id: "801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com",
+          callback: handleGoogleLogin,
+          context: "signin",
+          ux_mode: "popup"
+        });
+        
+        google.accounts.id.renderButton(
+          document.getElementById("googleButtonContainer"),
+          { theme: "outline", size: "large", type: "standard", shape: "rectangular", text: "signin_with" }
+        );
+      } else {
+        console.warn("Google SSO script did not load.");
+      }
+    };
 
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
