@@ -325,7 +325,7 @@
         cutoff.setDate(cutoff.getDate() - days);
         
         currentData = currentData.filter(t => {
-           // Fallback logic to prevent zero-data bugs if modifiedTime is missing from cache
+           // Robust fallback logic to prevent zero-data bugs
            const refTime = t.agentRespondedTime || t.modifiedTime || t.createdTime;
            if (!refTime) return false;
            return new Date(refTime) < cutoff;
@@ -430,9 +430,9 @@
            created = isNaN(d.getTime()) ? t.createdTime : tableDateFmt.format(d);
         }
 
-        // Renamed and mapped to capture Agent Responded / Modified Time robustly
+        // Includes fallback to ensure column always renders even if cache is temporarily stale
         let responded = '-';
-        const respondedData = t.agentRespondedTime || t.modifiedTime;
+        const respondedData = t.agentRespondedTime || t.modifiedTime || t.createdTime;
         if (respondedData) {
            const d = new Date(respondedData);
            responded = isNaN(d.getTime()) ? respondedData : tableDateFmt.format(d);
@@ -446,7 +446,8 @@
         else if (pStr.includes('critical')) { bg = '#ef4444'; tc = '#ffffff'; } 
         const pHtml = prio !== '-' ? `<span class="priority-badge" style="background-color:${bg}; color:${tc};">${prio}</span>` : prio;
 
-        const ticketLink = `https://desk.zoho.com/support/mindmatrix/ShowHomePage.do#Cases/dv/${t.id}`;
+        // FIXED: Using Custom Mindmatrix URL Domain
+        const ticketLink = `https://helpdesk.mindmatrix.net/support/mindmatrixinc/ShowHomePage.do#Cases/dv/${t.id}`;
 
         let tr = document.createElement('tr');
         
