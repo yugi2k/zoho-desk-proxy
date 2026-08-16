@@ -8,14 +8,14 @@
   <link rel="icon" href="https://www.google.com/s2/favicons?domain=mindmatrix.net&sz=128" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- FIX: Instructs Google to trigger renderGoogleButton the exact millisecond it finishes downloading -->
-  <script src="https://accounts.google.com/gsi/client?onload=renderGoogleButton" async defer></script>
+  <!-- Restored official Google script without the custom onload race condition -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
     const authExpiry = localStorage.getItem('auth_expiry');
     if (!authExpiry || Date.now() > parseInt(authExpiry)) {
       localStorage.removeItem('auth_expiry');
-      // FIX: Clean URL check
+      // Clean URL check
       const path = window.location.pathname;
       if (!path.endsWith('index') && !path.endsWith('index.html') && !path.endsWith('/')) {
          window.location.href = 'index';
@@ -59,10 +59,10 @@
     <div class="header-actions">
       <!-- Wrap secured buttons to hide them on the login screen -->
       <div id="securedNavButtons" style="display: none; align-items: center; gap: 12px;">
-        <a href="reports" class="icon-btn" data-tooltip="View Reports">
+        <a href="reports.html" class="icon-btn" data-tooltip="View Reports">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
         </a>
-        <a href="agents" class="icon-btn" data-tooltip="View Agents">
+        <a href="agents.html" class="icon-btn" data-tooltip="View Agents">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
         </a>
         <button class="icon-btn logout-btn" onclick="logout()" data-tooltip="Logout">
@@ -91,11 +91,26 @@
         <input type="text" id="otpInput" placeholder="Enter 6-digit code">
         <button class="btn-login" onclick="verifyOTP()">Login securely</button>
       </div>
+      
       <div class="divider">OR</div>
 
-      <!-- SSO Fix: Empty container for JavaScript rendering -->
-      <div style="display: flex; justify-content: center; width: 100%; min-height: 44px;">
-        <div id="googleButtonContainer"></div>
+      <!-- Restored official Google Native HTML implementation -->
+      <div style="display: flex; justify-content: center; width: 100%;">
+        <div id="g_id_onload" 
+             data-client_id="801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com" 
+             data-context="signin" 
+             data-ux_mode="popup" 
+             data-callback="handleGoogleLogin" 
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin" 
+             data-type="standard" 
+             data-shape="rectangular" 
+             data-theme="outline" 
+             data-text="signin_with" 
+             data-size="large" 
+             data-logo_alignment="left">
+        </div>
       </div>
       
       <p id="loginError" style="color: #ef4444; margin-top: 20px; font-size: 0.9rem; display: none; font-weight: 500;"></p>
@@ -145,26 +160,6 @@
     }
     // ------------------------------
 
-    // --- FORCE GOOGLE SSO TO RENDER ---
-    // FIX: Changed from anonymous window.onload to named function called by Google script
-    function renderGoogleButton() {
-      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-        google.accounts.id.initialize({
-          client_id: "801862906305-d2sbfbbcpih507cc8bot5sav1nlt8606.apps.googleusercontent.com",
-          callback: handleGoogleLogin,
-          context: "signin",
-          ux_mode: "popup"
-        });
-        
-        google.accounts.id.renderButton(
-          document.getElementById("googleButtonContainer"),
-          { theme: "outline", size: "large", type: "standard", shape: "rectangular", text: "signin_with" }
-        );
-      } else {
-        console.warn("Google SSO script did not load.");
-      }
-    }
-
     function initTheme() {
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme === 'light') {
@@ -191,7 +186,6 @@
       localStorage.removeItem('zoho_tickets_cache');
       localStorage.removeItem('zoho_data_timestamp');
       localStorage.removeItem('zoho_exact_stats');
-      // FIX: Clean URL
       window.location.href = 'index';
     }
 
@@ -300,7 +294,7 @@
       }
     });
 
-// --- HIDDEN ALT+C FUNCTION (Now using exact Zoho Dashboard API numbers) ---
+// --- HIDDEN ALT+C FUNCTION ---
     function copyMatrixToClipboard() {
       // Retrieve the exactStats object from global memory
       const stats = window.exactStatsData;
@@ -352,7 +346,6 @@
         let lastUpdateMs = null;
 
         // --- THE CACHING ENGINE ---
-        // If not forcing live, and cache is less than 15 mins old (900,000 ms), USE CACHE!
         if (!forceLive && cacheTimestamp && cachedTickets && (now - parseInt(cacheTimestamp) < 15 * 60 * 1000)) {
             tickets = JSON.parse(cachedTickets);
             statsData = cachedStats ? JSON.parse(cachedStats) : null;
@@ -372,7 +365,7 @@
             statsData = result.exactStats;
             lastUpdateMs = result.lastUpdated || now;
             
-            // Trim the fat & pre-format client names to save storage space (Prevents 5MB limit crash)
+            // Trim the fat & pre-format client names to save storage space
             const slimTickets = tickets.map(t => {
               let cName = "Unknown";
               if (t.customFields && t.customFields['Client Name']) cName = t.customFields['Client Name'];
